@@ -1,0 +1,23 @@
+{
+  "name": "ai-agent-hub",
+  "version": "1.0.0",
+  "description": "A multi-agent AI hub powered by Google Gemini 2.0 Flash — 10 specialized AI agents for sales, marketing, HR, legal, finance, and more.",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-markdown": "^9.0.1",
+    "lucide-react": "^0.400.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.1",
+    "vite": "^5.3.1",
+    "tailwindcss": "^3.4.4",
+    "autoprefixer": "^10.4.19",
+    "postcss": "^8.4.38"
+  }
+}
