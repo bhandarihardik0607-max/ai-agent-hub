@@ -1,940 +1,730 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AI Agent Hub — Powered by Gemini</title>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AI Agent Hub — Powered by Groq</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
-  <style>
-    :root {
-      --bg: #04040e;
-      --card: rgba(255,255,255,0.03);
-    }
-    * { font-family: 'Inter', sans-serif; box-sizing: border-box; }
-    body { background: var(--bg); color: #e2e8f0; min-height: 100vh; overflow-x: hidden; }
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet"/>
+<style>
+:root{--bg:#02020a;--card:rgba(255,255,255,0.03);}
+*{font-family:'Inter',sans-serif;box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:#e2e8f0;min-height:100vh;overflow-x:hidden;}
 
-    /* ── CANVAS STARS ── */
-    #stars-canvas { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+/* ── SOLAR SYSTEM CANVAS ── */
+#solar-canvas{position:fixed;inset:0;z-index:0;pointer-events:none;}
 
-    /* ── FLOATING ORBS ── */
-    .orb {
-      position: fixed; border-radius: 50%; filter: blur(100px);
-      pointer-events: none; z-index: 0; animation: orbFloat linear infinite;
-    }
-    @keyframes orbFloat {
-      0%   { transform: translate(0,0) scale(1); }
-      33%  { transform: translate(40px,-60px) scale(1.1); }
-      66%  { transform: translate(-30px,40px) scale(0.9); }
-      100% { transform: translate(0,0) scale(1); }
-    }
+/* ── NOISE ── */
+body::before{content:'';position:fixed;inset:0;z-index:1;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+  pointer-events:none;opacity:.5;}
 
-    /* ── NOISE TEXTURE ── */
-    body::before {
-      content: '';
-      position: fixed; inset: 0; z-index: 0;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
-      pointer-events: none; opacity: 0.4;
-    }
+/* ── NAV ── */
+nav{position:sticky;top:0;z-index:200;background:rgba(2,2,10,.9);backdrop-filter:blur(30px);border-bottom:1px solid rgba(255,255,255,.06);}
 
-    /* ── GRID ── */
-    .grid-overlay {
-      position: fixed; inset: 0; z-index: 0; pointer-events: none;
-      background-image: linear-gradient(rgba(99,102,241,.04) 1px, transparent 1px),
-                        linear-gradient(90deg, rgba(99,102,241,.04) 1px, transparent 1px);
-      background-size: 55px 55px;
-      animation: gridPulse 8s ease-in-out infinite;
-    }
-    @keyframes gridPulse {
-      0%,100% { opacity:0.6; } 50% { opacity:1; }
-    }
+/* ── ORBITRON ── */
+.orbitron{font-family:'Orbitron',monospace;}
 
-    /* ── NAV ── */
-    nav {
-      position: sticky; top: 0; z-index: 100;
-      background: rgba(4,4,14,.85); backdrop-filter: blur(24px);
-      border-bottom: 1px solid rgba(255,255,255,.06);
-    }
+/* ── HERO TITLE ── */
+.hero-title{
+  background:linear-gradient(135deg,#fff 0%,#a5b4fc 30%,#818cf8 55%,#c084fc 75%,#f9a8d4 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  background-size:300% 300%;animation:gradShift 6s ease infinite;
+}
+@keyframes gradShift{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
 
-    /* ── HERO TEXT ── */
-    .hero-title {
-      background: linear-gradient(135deg, #fff 0%, #a5b4fc 40%, #818cf8 60%, #c084fc 100%);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-      background-size: 200% 200%;
-      animation: gradientShift 5s ease infinite;
-    }
-    @keyframes gradientShift {
-      0%,100% { background-position: 0% 50%; }
-      50%      { background-position: 100% 50%; }
-    }
+/* ── GLITCH ── */
+.glitch{position:relative;animation:glitchAnim 9s infinite;}
+@keyframes glitchAnim{
+  0%,88%,100%{text-shadow:none;}
+  89%{text-shadow:-3px 0 #f0f,3px 0 #0ff;}
+  90%{text-shadow:3px 0 #f0f,-3px 0 #0ff;}
+  91%{text-shadow:none;}
+  92%{text-shadow:-1px 0 #f0f,1px 0 #0ff;}
+  93%{text-shadow:none;}
+}
 
-    /* ── GLITCH TEXT ── */
-    .glitch {
-      position: relative;
-      animation: glitchAnim 8s infinite;
-    }
-    @keyframes glitchAnim {
-      0%,90%,100% { text-shadow: none; }
-      91% { text-shadow: -2px 0 #f0f, 2px 0 #0ff; }
-      92% { text-shadow: 2px 0 #f0f, -2px 0 #0ff; }
-      93% { text-shadow: none; }
-      94% { text-shadow: -1px 0 #f0f, 1px 0 #0ff; }
-      95% { text-shadow: none; }
-    }
+/* ── AGENT CARDS ── */
+.agent-card{
+  background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.07);
+  border-radius:24px;cursor:pointer;position:relative;overflow:hidden;
+  transition:transform .4s cubic-bezier(.34,1.56,.64,1),box-shadow .4s,border-color .3s;
+  animation:cardIn .6s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes cardIn{from{opacity:0;transform:translateY(40px) scale(.9)}to{opacity:1;transform:none}}
+.agent-card:hover{transform:translateY(-12px) scale(1.03);}
+.agent-card::after{content:'';position:absolute;inset:0;background:linear-gradient(105deg,transparent 40%,rgba(255,255,255,.07) 50%,transparent 60%);transform:translateX(-100%);transition:transform .6s ease;pointer-events:none;}
+.agent-card:hover::after{transform:translateX(100%);}
+.agent-card .top-line{position:absolute;top:0;left:0;right:0;height:2px;opacity:.7;transition:opacity .3s;}
+.agent-card:hover .top-line{opacity:1;}
 
-    /* ── TYPEWRITER ── */
-    .typewriter {
-      overflow: hidden;
-      border-right: 2px solid #818cf8;
-      white-space: nowrap;
-      animation: typing 3s steps(40,end) forwards, blinkCaret .8s step-end infinite;
-    }
-    @keyframes typing { from { width:0 } to { width:100% } }
-    @keyframes blinkCaret { 0%,100%{border-color:transparent} 50%{border-color:#818cf8} }
+/* ── AVATAR ── */
+.avatar-wrap{position:relative;width:90px;height:90px;margin:0 auto 1rem;}
+.avatar-img{width:90px;height:90px;border-radius:50%;object-fit:cover;object-position:top;border:2px solid rgba(255,255,255,.15);transition:transform .4s ease,box-shadow .4s;position:relative;z-index:2;}
+.agent-card:hover .avatar-img{transform:scale(1.1) translateY(-4px);}
+.avatar-ring{position:absolute;inset:-6px;border-radius:50%;border:2px solid transparent;animation:ringRot 3s linear infinite;opacity:0;transition:opacity .3s;}
+.agent-card:hover .avatar-ring{opacity:1;}
+@keyframes ringRot{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+.online-dot{position:absolute;bottom:4px;right:4px;width:14px;height:14px;border-radius:50%;background:#22c55e;border:2px solid #02020a;z-index:3;animation:dotPulse 2s infinite;}
+@keyframes dotPulse{0%,100%{box-shadow:0 0 0 0 rgba(34,197,94,.5)}50%{box-shadow:0 0 0 6px rgba(34,197,94,0)}}
 
-    /* ── AGENT CARDS ── */
-    .agent-card {
-      background: rgba(255,255,255,.025);
-      border: 1px solid rgba(255,255,255,.07);
-      border-radius: 24px;
-      cursor: pointer;
-      position: relative;
-      overflow: hidden;
-      transition: transform .4s cubic-bezier(.34,1.56,.64,1), box-shadow .4s ease, border-color .3s ease;
-      animation: cardEntrance .6s cubic-bezier(.34,1.56,.64,1) both;
-    }
-    @keyframes cardEntrance {
-      from { opacity:0; transform: translateY(40px) scale(.9); }
-      to   { opacity:1; transform: translateY(0) scale(1); }
-    }
-    .agent-card:hover {
-      transform: translateY(-10px) scale(1.03);
-    }
+.skill-tag{display:inline-block;padding:2px 8px;border-radius:999px;font-size:.67rem;font-weight:600;border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.38);background:rgba(255,255,255,.04);transition:all .2s;}
+.agent-card:hover .skill-tag{border-color:rgba(255,255,255,.2);color:rgba(255,255,255,.65);}
 
-    /* Shimmer sweep on hover */
-    .agent-card::after {
-      content:'';
-      position: absolute; inset:0;
-      background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,.06) 50%, transparent 60%);
-      transform: translateX(-100%);
-      transition: transform .6s ease;
-      pointer-events: none;
-    }
-    .agent-card:hover::after { transform: translateX(100%); }
+.card-cta{display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 0;border-radius:12px;font-size:.8rem;font-weight:700;margin-top:1rem;transform:translateY(6px);opacity:0;transition:opacity .3s,transform .3s;color:#fff;}
+.agent-card:hover .card-cta{opacity:1;transform:translateY(0);}
 
-    /* Glow line top */
-    .agent-card .top-line {
-      position: absolute; top:0; left:0; right:0; height: 2px;
-      opacity: .7; transition: opacity .3s;
-    }
-    .agent-card:hover .top-line { opacity: 1; }
+/* ── CHAT ── */
+#chat-view{display:none;flex-direction:column;height:100vh;}
+.chat-header{background:rgba(2,2,10,.92);backdrop-filter:blur(30px);border-bottom:1px solid rgba(255,255,255,.07);padding:.85rem 1.25rem;display:flex;align-items:center;gap:.85rem;position:sticky;top:0;z-index:100;}
+.chat-messages{flex:1;overflow-y:auto;padding:1.5rem;display:flex;flex-direction:column;gap:1rem;scroll-behavior:smooth;}
+.chat-messages::-webkit-scrollbar{width:4px;}
+.chat-messages::-webkit-scrollbar-thumb{background:rgba(99,102,241,.4);border-radius:999px;}
 
-    /* ── AVATAR ── */
-    .avatar-wrap {
-      position: relative;
-      width: 90px; height: 90px;
-      margin: 0 auto 1rem;
-    }
-    .avatar-img {
-      width: 90px; height: 90px;
-      border-radius: 50%;
-      object-fit: cover; object-position: top;
-      border: 2px solid rgba(255,255,255,.15);
-      transition: transform .4s ease, box-shadow .4s ease;
-      position: relative; z-index: 2;
-    }
-    .agent-card:hover .avatar-img {
-      transform: scale(1.08) translateY(-4px);
-    }
-    /* Animated ring */
-    .avatar-ring {
-      position: absolute; inset: -6px;
-      border-radius: 50%;
-      border: 2px solid transparent;
-      animation: ringRotate 3s linear infinite;
-      opacity: 0;
-      transition: opacity .3s;
-    }
-    .agent-card:hover .avatar-ring { opacity: 1; }
-    @keyframes ringRotate {
-      from { transform: rotate(0deg); }
-      to   { transform: rotate(360deg); }
-    }
+.msg-wrapper{animation:msgIn .3s cubic-bezier(.34,1.56,.64,1) both;}
+@keyframes msgIn{from{opacity:0;transform:translateY(12px) scale(.97)}to{opacity:1;transform:none}}
 
-    /* Online dot */
-    .online-dot {
-      position: absolute; bottom: 4px; right: 4px;
-      width: 14px; height: 14px; border-radius: 50%;
-      background: #22c55e;
-      border: 2px solid #04040e;
-      z-index: 3;
-      animation: dotPulse 2s infinite;
-    }
-    @keyframes dotPulse {
-      0%,100% { box-shadow: 0 0 0 0 rgba(34,197,94,.5); }
-      50%      { box-shadow: 0 0 0 6px rgba(34,197,94,0); }
-    }
+.msg-user{align-self:flex-end;background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:18px 18px 4px 18px;padding:.8rem 1.1rem;max-width:75%;font-size:.93rem;line-height:1.65;box-shadow:0 4px 24px rgba(99,102,241,.35);color:#fff;}
+.msg-agent{align-self:flex-start;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:18px 18px 18px 4px;padding:1rem 1.15rem;max-width:85%;font-size:.93rem;line-height:1.75;}
+.msg-agent h1,.msg-agent h2,.msg-agent h3{font-weight:700;color:#f8fafc;margin:.7rem 0 .35rem;}
+.msg-agent h1{font-size:1.15rem}.msg-agent h2{font-size:1.05rem}.msg-agent h3{font-size:.97rem}
+.msg-agent ul,.msg-agent ol{padding-left:1.4rem;margin:.4rem 0;}
+.msg-agent li{margin:.2rem 0;}
+.msg-agent p{margin:.35rem 0;}
+.msg-agent strong{color:#c7d2fe;}
+.msg-agent code{background:rgba(99,102,241,.15);border:1px solid rgba(99,102,241,.3);border-radius:4px;padding:.1rem .35rem;font-family:monospace;font-size:.88em;color:#a5b4fc;}
+.msg-agent pre{background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:.9rem;overflow-x:auto;margin:.6rem 0;}
+.msg-agent pre code{background:none;border:none;padding:0;color:#86efac;}
+.msg-agent table{width:100%;border-collapse:collapse;margin:.6rem 0;font-size:.88rem;}
+.msg-agent th{background:rgba(99,102,241,.2);color:#c7d2fe;padding:.45rem .7rem;border:1px solid rgba(99,102,241,.3);text-align:left;}
+.msg-agent td{padding:.45rem .7rem;border:1px solid rgba(255,255,255,.07);}
+.msg-agent tr:nth-child(even) td{background:rgba(255,255,255,.02);}
+.msg-agent blockquote{border-left:3px solid rgba(99,102,241,.6);padding-left:.9rem;color:#94a3b8;margin:.45rem 0;}
+.chat-avatar{width:40px;height:40px;border-radius:50%;object-fit:cover;object-position:top;border:2px solid rgba(255,255,255,.1);flex-shrink:0;}
 
-    /* ── SKILL TAGS ── */
-    .skill-tag {
-      display: inline-block;
-      padding: 2px 9px; border-radius: 999px;
-      font-size: .68rem; font-weight: 600;
-      border: 1px solid rgba(255,255,255,.1);
-      color: rgba(255,255,255,.4);
-      background: rgba(255,255,255,.04);
-      transition: all .2s;
-    }
-    .agent-card:hover .skill-tag {
-      border-color: rgba(255,255,255,.2);
-      color: rgba(255,255,255,.65);
-    }
+.chat-input-area{background:rgba(2,2,10,.95);backdrop-filter:blur(30px);border-top:1px solid rgba(255,255,255,.07);padding:1rem 1.25rem;}
+.input-box{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:14px;display:flex;align-items:flex-end;gap:.65rem;padding:.7rem 1rem;transition:border-color .2s,box-shadow .2s;}
+.input-box:focus-within{border-color:rgba(99,102,241,.55);box-shadow:0 0 0 3px rgba(99,102,241,.1);}
+textarea{flex:1;background:transparent;border:none;outline:none;color:#e2e8f0;font-size:.93rem;resize:none;max-height:150px;line-height:1.6;}
+textarea::placeholder{color:#475569;}
 
-    /* ── CTA BUTTON ── */
-    .card-cta {
-      display: flex; align-items: center; justify-content: center; gap: 6px;
-      padding: 8px 0; border-radius: 12px;
-      font-size: .8rem; font-weight: 700;
-      margin-top: 1rem;
-      transform: translateY(6px);
-      opacity: 0;
-      transition: opacity .3s, transform .3s;
-      color: #fff;
-    }
-    .agent-card:hover .card-cta { opacity:1; transform: translateY(0); }
+.send-btn{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s;}
+.send-btn:hover{transform:scale(1.1) rotate(-8deg);box-shadow:0 4px 16px rgba(99,102,241,.5);}
+.send-btn:disabled{opacity:.35;cursor:not-allowed;transform:none;}
 
-    /* Arrow bounce */
-    .arrow-bounce { animation: arrowBounce 1s ease-in-out infinite; }
-    @keyframes arrowBounce {
-      0%,100% { transform: translateX(0); }
-      50%      { transform: translateX(4px); }
-    }
+/* ── MIC BUTTON ── */
+.mic-btn{width:38px;height:38px;border-radius:10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s;color:rgba(255,255,255,.5);}
+.mic-btn:hover{background:rgba(239,68,68,.15);border-color:rgba(239,68,68,.4);color:#f87171;}
+.mic-btn.recording{background:rgba(239,68,68,.2);border-color:#ef4444;color:#f87171;animation:micPulse 1s ease-in-out infinite;}
+@keyframes micPulse{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,.4)}50%{box-shadow:0 0 0 8px rgba(239,68,68,0)}}
 
-    /* ── CHAT VIEW ── */
-    #chat-view { display:none; flex-direction:column; height:100vh; }
+/* ── SPEAK BTN ── */
+.speak-btn{background:none;border:none;cursor:pointer;padding:3px 6px;border-radius:6px;color:rgba(255,255,255,.3);font-size:.7rem;transition:all .2s;display:inline-flex;align-items:center;gap:3px;}
+.speak-btn:hover{background:rgba(99,102,241,.15);color:#a5b4fc;}
+.speak-btn.speaking{color:#a5b4fc;animation:speakPulse 1s ease-in-out infinite;}
+@keyframes speakPulse{0%,100%{opacity:1}50%{opacity:.4}}
 
-    .chat-header {
-      background: rgba(4,4,14,.9); backdrop-filter: blur(24px);
-      border-bottom: 1px solid rgba(255,255,255,.07);
-      padding: .85rem 1.25rem;
-      display: flex; align-items: center; gap: .85rem;
-      position: sticky; top:0; z-index:50;
-    }
+/* ── TYPING ── */
+.typing-dot{width:8px;height:8px;border-radius:50%;background:#6366f1;animation:typingB 1.2s infinite;}
+.typing-dot:nth-child(2){animation-delay:.2s}.typing-dot:nth-child(3){animation-delay:.4s}
+@keyframes typingB{0%,80%,100%{transform:translateY(0);opacity:.4}40%{transform:translateY(-8px);opacity:1}}
 
-    .chat-messages {
-      flex:1; overflow-y:auto; padding:1.5rem;
-      display:flex; flex-direction:column; gap:1rem;
-      scroll-behavior: smooth;
-    }
-    .chat-messages::-webkit-scrollbar { width:4px; }
-    .chat-messages::-webkit-scrollbar-thumb { background: rgba(99,102,241,.4); border-radius:999px; }
+.quick-chip{background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.25);border-radius:999px;padding:5px 13px;font-size:.78rem;color:#a5b4fc;cursor:pointer;transition:all .2s;white-space:nowrap;flex-shrink:0;}
+.quick-chip:hover{background:rgba(99,102,241,.25);border-color:rgba(99,102,241,.5);transform:translateY(-2px);}
 
-    /* Message entrance */
-    .msg-wrapper { animation: msgIn .3s cubic-bezier(.34,1.56,.64,1) both; }
-    @keyframes msgIn {
-      from { opacity:0; transform: translateY(12px) scale(.97); }
-      to   { opacity:1; transform: translateY(0) scale(1); }
-    }
+/* ── AI GUIDE BOT ── */
+#guide-btn{position:fixed;bottom:1.75rem;right:1.75rem;z-index:500;width:58px;height:58px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6,#c084fc);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 0 rgba(99,102,241,.6);animation:guidePulse 2.5s ease-in-out infinite;transition:transform .2s;}
+#guide-btn:hover{transform:scale(1.1);}
+@keyframes guidePulse{0%,100%{box-shadow:0 0 0 0 rgba(99,102,241,.5)}50%{box-shadow:0 0 0 14px rgba(99,102,241,0)}}
 
-    .msg-user {
-      align-self: flex-end;
-      background: linear-gradient(135deg, #6366f1, #8b5cf6);
-      border-radius: 18px 18px 4px 18px;
-      padding: .8rem 1.1rem;
-      max-width: 75%; font-size: .93rem; line-height:1.65;
-      box-shadow: 0 4px 24px rgba(99,102,241,.35);
-      color: #fff;
-    }
-    .msg-agent {
-      align-self: flex-start;
-      background: rgba(255,255,255,.05);
-      border: 1px solid rgba(255,255,255,.08);
-      border-radius: 18px 18px 18px 4px;
-      padding: 1rem 1.15rem;
-      max-width: 85%; font-size:.93rem; line-height:1.75;
-    }
-    .msg-agent h1,.msg-agent h2,.msg-agent h3 { font-weight:700; color:#f8fafc; margin:.7rem 0 .35rem; }
-    .msg-agent h1{font-size:1.15rem} .msg-agent h2{font-size:1.05rem} .msg-agent h3{font-size:.97rem}
-    .msg-agent ul,.msg-agent ol { padding-left:1.4rem; margin:.4rem 0; }
-    .msg-agent li { margin:.2rem 0; }
-    .msg-agent p  { margin:.35rem 0; }
-    .msg-agent strong { color:#c7d2fe; }
-    .msg-agent code { background:rgba(99,102,241,.15); border:1px solid rgba(99,102,241,.3); border-radius:4px; padding:.1rem .35rem; font-family:monospace; font-size:.88em; color:#a5b4fc; }
-    .msg-agent pre { background:rgba(0,0,0,.5); border:1px solid rgba(255,255,255,.07); border-radius:10px; padding:.9rem; overflow-x:auto; margin:.6rem 0; }
-    .msg-agent pre code { background:none; border:none; padding:0; color:#86efac; }
-    .msg-agent table { width:100%; border-collapse:collapse; margin:.6rem 0; font-size:.88rem; }
-    .msg-agent th { background:rgba(99,102,241,.2); color:#c7d2fe; padding:.45rem .7rem; border:1px solid rgba(99,102,241,.3); text-align:left; }
-    .msg-agent td { padding:.45rem .7rem; border:1px solid rgba(255,255,255,.07); }
-    .msg-agent tr:nth-child(even) td { background:rgba(255,255,255,.02); }
-    .msg-agent blockquote { border-left:3px solid rgba(99,102,241,.6); padding-left:.9rem; color:#94a3b8; margin:.45rem 0; }
+#guide-panel{position:fixed;bottom:5.5rem;right:1.75rem;z-index:500;width:340px;max-height:520px;background:rgba(8,8,24,.97);border:1px solid rgba(99,102,241,.3);border-radius:20px;display:none;flex-direction:column;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.6),0 0 0 1px rgba(99,102,241,.1);animation:panelIn .35s cubic-bezier(.34,1.56,.64,1);}
+@keyframes panelIn{from{opacity:0;transform:translateY(20px) scale(.95)}to{opacity:1;transform:none}}
 
-    /* Agent avatar in chat */
-    .chat-avatar {
-      width:40px; height:40px; border-radius:50%;
-      object-fit:cover; object-position:top;
-      border:2px solid rgba(255,255,255,.1);
-      flex-shrink:0;
-    }
+#guide-panel.open{display:flex;}
 
-    /* ── INPUT ── */
-    .chat-input-area {
-      background: rgba(4,4,14,.92); backdrop-filter:blur(24px);
-      border-top: 1px solid rgba(255,255,255,.07);
-      padding:1rem 1.25rem;
-    }
-    .input-box {
-      background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1);
-      border-radius:14px; display:flex; align-items:flex-end; gap:.65rem;
-      padding:.7rem 1rem; transition:border-color .2s, box-shadow .2s;
-    }
-    .input-box:focus-within { border-color:rgba(99,102,241,.55); box-shadow:0 0 0 3px rgba(99,102,241,.1); }
-    textarea { flex:1; background:transparent; border:none; outline:none; color:#e2e8f0; font-size:.93rem; resize:none; max-height:150px; line-height:1.6; }
-    textarea::placeholder { color:#475569; }
+.guide-header{background:linear-gradient(135deg,rgba(99,102,241,.2),rgba(192,132,252,.15));border-bottom:1px solid rgba(99,102,241,.2);padding:.9rem 1rem;display:flex;align-items:center;gap:.7rem;}
+.guide-avatar{width:42px;height:42px;border-radius:50%;object-fit:cover;border:2px solid rgba(99,102,241,.5);box-shadow:0 0 20px rgba(99,102,241,.4);}
+.guide-msgs{flex:1;overflow-y:auto;padding:.9rem;display:flex;flex-direction:column;gap:.65rem;}
+.guide-msgs::-webkit-scrollbar{width:3px;}
+.guide-msgs::-webkit-scrollbar-thumb{background:rgba(99,102,241,.3);border-radius:999px;}
+.guide-msg-bot{background:rgba(99,102,241,.12);border:1px solid rgba(99,102,241,.2);border-radius:14px 14px 14px 4px;padding:.65rem .85rem;font-size:.82rem;color:#c7d2fe;line-height:1.55;animation:msgIn .3s ease both;}
+.guide-msg-user{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:14px 14px 4px 14px;padding:.65rem .85rem;font-size:.82rem;color:#e2e8f0;line-height:1.55;animation:msgIn .3s ease both;align-self:flex-end;max-width:90%;}
+.guide-input-area{border-top:1px solid rgba(99,102,241,.15);padding:.75rem;display:flex;gap:.5rem;align-items:center;background:rgba(4,4,16,.8);}
+.guide-input{flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(99,102,241,.2);border-radius:10px;padding:.5rem .8rem;font-size:.82rem;color:#e2e8f0;outline:none;transition:border-color .2s;}
+.guide-input:focus{border-color:rgba(99,102,241,.5);}
+.guide-send{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0;}
+.guide-send:hover{transform:scale(1.1);box-shadow:0 4px 12px rgba(99,102,241,.5);}
 
-    .send-btn {
-      width:38px; height:38px; border-radius:10px;
-      background:linear-gradient(135deg,#6366f1,#8b5cf6); border:none;
-      cursor:pointer; display:flex; align-items:center; justify-content:center;
-      flex-shrink:0; transition:all .2s;
-    }
-    .send-btn:hover { transform:scale(1.1) rotate(-8deg); box-shadow:0 4px 16px rgba(99,102,241,.5); }
-    .send-btn:disabled { opacity:.35; cursor:not-allowed; transform:none; }
+/* ── TOAST ── */
+#toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(80px);background:rgba(20,20,40,.95);border:1px solid rgba(99,102,241,.4);border-radius:12px;padding:.65rem 1.2rem;font-size:.83rem;color:#c7d2fe;backdrop-filter:blur(16px);z-index:9999;transition:transform .3s cubic-bezier(.34,1.56,.64,1),opacity .3s;opacity:0;}
+#toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
 
-    /* ── TYPING ── */
-    .typing-dot { width:8px; height:8px; border-radius:50%; background:#6366f1; animation:typingBounce 1.2s infinite; }
-    .typing-dot:nth-child(2){animation-delay:.2s}
-    .typing-dot:nth-child(3){animation-delay:.4s}
-    @keyframes typingBounce { 0%,80%,100%{transform:translateY(0);opacity:.4} 40%{transform:translateY(-8px);opacity:1} }
+/* ── SCROLL TOP ── */
+#scrollTop{position:fixed;bottom:1.75rem;left:1.75rem;z-index:400;width:42px;height:42px;border-radius:12px;background:rgba(99,102,241,.7);border:1px solid rgba(99,102,241,.4);display:none;align-items:center;justify-content:center;cursor:pointer;backdrop-filter:blur(10px);transition:all .2s;}
+#scrollTop:hover{transform:translateY(-3px);background:rgba(99,102,241,1);}
 
-    /* ── QUICK CHIPS ── */
-    .quick-chip {
-      background:rgba(99,102,241,.1); border:1px solid rgba(99,102,241,.25);
-      border-radius:999px; padding:5px 13px; font-size:.78rem; color:#a5b4fc;
-      cursor:pointer; transition:all .2s; white-space:nowrap; flex-shrink:0;
-    }
-    .quick-chip:hover { background:rgba(99,102,241,.25); border-color:rgba(99,102,241,.5); transform:translateY(-2px); }
+/* ── GEMINI BADGE ── */
+.gemini-badge{background:linear-gradient(135deg,rgba(66,133,244,.12),rgba(251,188,4,.08),rgba(52,168,83,.08));border:1px solid rgba(99,102,241,.3);border-radius:999px;padding:3px 11px;font-size:.72rem;font-weight:700;display:flex;align-items:center;gap:5px;color:#a5b4fc;animation:badgeFloat 3s ease-in-out infinite;}
+@keyframes badgeFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
 
-    /* ── GEMINI BADGE ── */
-    .gemini-badge {
-      background:linear-gradient(135deg,rgba(66,133,244,.12),rgba(251,188,4,.08),rgba(52,168,83,.08));
-      border:1px solid rgba(99,102,241,.3); border-radius:999px; padding:3px 11px;
-      font-size:.72rem; font-weight:700; display:flex; align-items:center; gap:5px; color:#a5b4fc;
-    }
+.status-dot{width:8px;height:8px;border-radius:50%;background:#22c55e;animation:dotPulse 2s infinite;}
+.back-btn{width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;color:rgba(255,255,255,.6);}
+.back-btn:hover{background:rgba(255,255,255,.1);color:#fff;transform:translateX(-2px);}
+.fade-in{animation:fadeIn .6s ease both;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
 
-    /* ── STATUS DOT ── */
-    .status-dot { width:8px; height:8px; border-radius:50%; background:#22c55e; animation:dotPulse 2s infinite; }
+/* particle */
+.particle{position:fixed;border-radius:50%;pointer-events:none;animation:particleRise linear forwards;}
+@keyframes particleRise{0%{opacity:.8;transform:translate(0,0) scale(1)}100%{opacity:0;transform:translate(var(--tx),var(--ty)) scale(0)}}
 
-    /* ── SCROLL ── */
-    .chips-scroll::-webkit-scrollbar { display:none; }
+/* voice wave */
+.voice-wave{display:flex;align-items:center;gap:3px;height:20px;}
+.voice-bar{width:3px;border-radius:2px;background:#6366f1;animation:waveAnim 1s ease-in-out infinite;}
+.voice-bar:nth-child(1){animation-delay:.0s}.voice-bar:nth-child(2){animation-delay:.1s}
+.voice-bar:nth-child(3){animation-delay:.2s}.voice-bar:nth-child(4){animation-delay:.3s}
+.voice-bar:nth-child(5){animation-delay:.4s}
+@keyframes waveAnim{0%,100%{height:4px;opacity:.4}50%{height:18px;opacity:1}}
 
-    /* ── SECTION HEADING UNDERLINE ── */
-    .section-head {
-      position: relative; display: inline-block;
-    }
-    .section-head::after {
-      content:'';
-      position:absolute; bottom:-6px; left:0; right:0; height:2px;
-      background:linear-gradient(90deg,#6366f1,#c084fc,transparent);
-      border-radius:999px;
-      animation:underlineGrow 1s ease both;
-    }
-    @keyframes underlineGrow { from{width:0} to{width:100%} }
-
-    /* ── COUNTER NUMBERS ── */
-    .stat-num {
-      background:linear-gradient(135deg,#a5b4fc,#c084fc);
-      -webkit-background-clip:text; -webkit-text-fill-color:transparent;
-      background-clip:text;
-    }
-
-    /* ── BACK BTN ── */
-    .back-btn {
-      width:36px; height:36px; border-radius:10px;
-      background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1);
-      display:flex; align-items:center; justify-content:center;
-      cursor:pointer; transition:all .2s; color:rgba(255,255,255,.6);
-    }
-    .back-btn:hover { background:rgba(255,255,255,.1); color:#fff; transform:translateX(-2px); }
-
-    /* ── FADE IN ── */
-    .fade-in { animation: fadeIn .5s ease both; }
-    @keyframes fadeIn { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
-
-    /* ── SCROLL TO TOP ── */
-    #scrollTop {
-      position:fixed; bottom:1.5rem; right:1.5rem; z-index:999;
-      width:42px; height:42px; border-radius:12px;
-      background:rgba(99,102,241,.8); border:1px solid rgba(99,102,241,.5);
-      display:none; align-items:center; justify-content:center;
-      cursor:pointer; backdrop-filter:blur(10px);
-      transition:all .2s;
-    }
-    #scrollTop:hover { transform:translateY(-3px); background:rgba(99,102,241,1); }
-
-    /* ── TOAST ── */
-    #toast {
-      position:fixed; bottom:2rem; left:50%; transform:translateX(-50%) translateY(80px);
-      background:rgba(30,30,50,.95); border:1px solid rgba(99,102,241,.4);
-      border-radius:12px; padding:.65rem 1.2rem; font-size:.83rem;
-      color:#c7d2fe; backdrop-filter:blur(16px); z-index:9999;
-      transition:transform .3s cubic-bezier(.34,1.56,.64,1), opacity .3s;
-      opacity:0;
-    }
-    #toast.show { transform:translateX(-50%) translateY(0); opacity:1; }
-
-    /* ── AGENT COLORS ── */
-    .ac-sales    { --ac:#f97316; }
-    .ac-email    { --ac:#3b82f6; }
-    .ac-analyst  { --ac:#8b5cf6; }
-    .ac-marketing{ --ac:#ec4899; }
-    .ac-hr       { --ac:#14b8a6; }
-    .ac-content  { --ac:#eab308; }
-    .ac-support  { --ac:#0ea5e9; }
-    .ac-finance  { --ac:#22c55e; }
-    .ac-legal    { --ac:#64748b; }
-    .ac-product  { --ac:#6366f1; }
-
-    /* ── HERO BADGE FLOAT ── */
-    .badge-float { animation: badgeFloat 3s ease-in-out infinite; }
-    @keyframes badgeFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-5px)} }
-
-    /* ── PARTICLE ── */
-    .particle {
-      position:absolute; border-radius:50%; pointer-events:none;
-      animation: particleRise linear infinite;
-    }
-    @keyframes particleRise {
-      0%   { transform:translate(0,0) scale(1); opacity:.7; }
-      100% { transform:translate(var(--tx),var(--ty)) scale(0); opacity:0; }
-    }
-
-    /* Tooltip */
-    [data-tip] { position:relative; }
-    [data-tip]::before {
-      content:attr(data-tip);
-      position:absolute; bottom:calc(100% + 6px); left:50%;
-      transform:translateX(-50%) scale(.8); transform-origin:bottom center;
-      background:rgba(15,15,30,.95); border:1px solid rgba(255,255,255,.1);
-      border-radius:7px; padding:4px 10px; font-size:.73rem; white-space:nowrap;
-      color:#e2e8f0; pointer-events:none; opacity:0; transition:all .2s;
-    }
-    [data-tip]:hover::before { opacity:1; transform:translateX(-50%) scale(1); }
-  </style>
+[data-tip]{position:relative;}
+[data-tip]::before{content:attr(data-tip);position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%) scale(.85);transform-origin:bottom;background:rgba(10,10,30,.97);border:1px solid rgba(255,255,255,.1);border-radius:7px;padding:4px 10px;font-size:.72rem;white-space:nowrap;color:#e2e8f0;pointer-events:none;opacity:0;transition:all .2s;}
+[data-tip]:hover::before{opacity:1;transform:translateX(-50%) scale(1);}
+</style>
 </head>
 <body>
-  <!-- Canvas -->
-  <canvas id="stars-canvas"></canvas>
 
-  <!-- Orbs -->
-  <div class="orb" style="width:500px;height:500px;top:-15%;left:-10%;background:rgba(99,102,241,.12);animation-duration:18s;"></div>
-  <div class="orb" style="width:400px;height:400px;bottom:-10%;right:-8%;background:rgba(192,132,252,.1);animation-duration:22s;animation-delay:-7s;"></div>
-  <div class="orb" style="width:300px;height:300px;top:40%;left:30%;background:rgba(236,72,153,.07);animation-duration:15s;animation-delay:-3s;"></div>
-  <div class="grid-overlay"></div>
+<!-- Solar System Canvas -->
+<canvas id="solar-canvas"></canvas>
 
-  <!-- Toast -->
-  <div id="toast">✓ Copied to clipboard</div>
+<!-- Toast -->
+<div id="toast"></div>
 
-  <!-- Scroll top -->
-  <button id="scrollTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">
-    <svg width="16" height="16" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24"><path d="M18 15l-6-6-6 6"/></svg>
-  </button>
+<!-- Scroll Top -->
+<button id="scrollTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+  <svg width="16" height="16" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24"><path d="M18 15l-6-6-6 6"/></svg>
+</button>
 
-  <!-- ===== LANDING ===== -->
-  <div id="landing-view" style="position:relative;z-index:10;">
+<!-- AI Guide Button -->
+<button id="guide-btn" onclick="toggleGuide()" data-tip="AI Guide">
+  <img src="https://media.base44.com/images/public/6a2f7a64853ac938f55fb360/94cd4d3e3_generated_image.png" style="width:36px;height:36px;border-radius:50%;object-fit:cover;" onerror="this.outerHTML='<span style=font-size:1.4rem>🤖</span>'"/>
+</button>
 
-    <!-- NAV -->
-    <nav>
-      <div style="max-width:1400px;margin:0 auto;padding:.8rem 1.5rem;display:flex;align-items:center;justify-content:space-between;">
-        <div style="display:flex;align-items:center;gap:.65rem;">
-          <div style="width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,#6366f1,#c084fc);display:flex;align-items:center;justify-content:center;font-size:1rem;box-shadow:0 0 20px rgba(99,102,241,.4);">✦</div>
-          <span style="font-weight:800;font-size:1.05rem;letter-spacing:-.02em;">AI Agent Hub</span>
-        </div>
-        <div class="gemini-badge badge-float">
-          <span style="font-size:.85rem;">✦</span>
-          Powered by Gemini 2.0
-        </div>
-        <div style="display:flex;align-items:center;gap:.5rem;">
-          <div class="status-dot"></div>
-          <span style="font-size:.78rem;color:#22c55e;font-weight:600;">10 Agents Online</span>
-        </div>
+<!-- Guide Panel -->
+<div id="guide-panel">
+  <div class="guide-header">
+    <img class="guide-avatar" src="https://media.base44.com/images/public/6a2f7a64853ac938f55fb360/94cd4d3e3_generated_image.png" onerror="this.outerHTML='<div style=width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:1.4rem>🤖</div>'" />
+    <div>
+      <div style="font-weight:800;font-size:.92rem;color:#fff;">ARIA</div>
+      <div style="font-size:.72rem;color:#a5b4fc;">Your AI Hub Guide · Always Online</div>
+    </div>
+    <button onclick="toggleGuide()" style="margin-left:auto;background:none;border:none;color:rgba(255,255,255,.4);cursor:pointer;font-size:1.1rem;line-height:1;transition:color .2s;" onmouseenter="this.style.color='#fff'" onmouseleave="this.style.color='rgba(255,255,255,.4)'">✕</button>
+  </div>
+  <div class="guide-msgs" id="guide-msgs"></div>
+  <div class="guide-input-area">
+    <input class="guide-input" id="guide-input" placeholder="Ask ARIA anything…" onkeydown="if(event.key==='Enter')sendGuideMsg()"/>
+    <button class="guide-send" onclick="sendGuideMsg()">
+      <svg width="13" height="13" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+    </button>
+  </div>
+</div>
+
+<!-- ═══════════════ LANDING ═══════════════ -->
+<div id="landing-view" style="position:relative;z-index:10;">
+
+  <!-- NAV -->
+  <nav>
+    <div style="max-width:1400px;margin:0 auto;padding:.8rem 1.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;">
+      <div style="display:flex;align-items:center;gap:.65rem;">
+        <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#6366f1,#c084fc);display:flex;align-items:center;justify-content:center;font-size:1.1rem;box-shadow:0 0 24px rgba(99,102,241,.5);">✦</div>
+        <span class="orbitron" style="font-weight:700;font-size:.95rem;letter-spacing:.05em;background:linear-gradient(135deg,#a5b4fc,#c084fc);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">AI AGENT HUB</span>
       </div>
-    </nav>
-
-    <!-- HERO -->
-    <section style="text-align:center;padding:5rem 1.5rem 3rem;max-width:900px;margin:0 auto;" class="fade-in">
-      <div style="display:inline-flex;align-items:center;gap:.5rem;background:rgba(99,102,241,.12);border:1px solid rgba(99,102,241,.3);border-radius:999px;padding:.4rem 1rem;font-size:.8rem;color:#a5b4fc;font-weight:600;margin-bottom:1.75rem;animation:badgeFloat 3s ease-in-out infinite;">
-        <span style="font-size:1rem;">🚀</span>
-        Next-Generation AI Workforce — Select Your Agent Below
+      <div class="gemini-badge">
+        <span>⚡</span> Powered by Groq · Llama 3.3 70B
       </div>
-
-      <h1 style="font-size:clamp(2.8rem,7vw,5.5rem);font-weight:900;line-height:1.05;letter-spacing:-.03em;margin-bottom:1.25rem;">
-        <span class="glitch" style="color:#fff;">Your AI Team.</span><br/>
-        <span class="hero-title">Always Ready.</span>
-      </h1>
-
-      <p style="font-size:1.1rem;color:rgba(255,255,255,.45);max-width:580px;margin:0 auto 2rem;line-height:1.75;">
-        10 elite AI specialists, each mastering a different business domain. Powered by <strong style="color:#a5b4fc;">Gemini 2.0 Flash</strong> — just pick your agent and start.
-      </p>
-
-      <!-- Stats -->
-      <div style="display:flex;justify-content:center;gap:2.5rem;flex-wrap:wrap;margin-bottom:3rem;">
-        <div style="text-align:center;">
-          <div class="stat-num" style="font-size:2.2rem;font-weight:900;line-height:1;">10</div>
-          <div style="font-size:.75rem;color:rgba(255,255,255,.35);margin-top:2px;">AI Agents</div>
-        </div>
-        <div style="width:1px;background:rgba(255,255,255,.08);"></div>
-        <div style="text-align:center;">
-          <div class="stat-num" style="font-size:2.2rem;font-weight:900;line-height:1;">2.0</div>
-          <div style="font-size:.75rem;color:rgba(255,255,255,.35);margin-top:2px;">Gemini Flash</div>
-        </div>
-        <div style="width:1px;background:rgba(255,255,255,.08);"></div>
-        <div style="text-align:center;">
-          <div class="stat-num" style="font-size:2.2rem;font-weight:900;line-height:1;">∞</div>
-          <div style="font-size:.75rem;color:rgba(255,255,255,.35);margin-top:2px;">Conversation Memory</div>
-        </div>
-        <div style="width:1px;background:rgba(255,255,255,.08);"></div>
-        <div style="text-align:center;">
-          <div class="stat-num" style="font-size:2.2rem;font-weight:900;line-height:1;">0s</div>
-          <div style="font-size:.75rem;color:rgba(255,255,255,.35);margin-top:2px;">Setup Time</div>
-        </div>
+      <div style="display:flex;align-items:center;gap:.5rem;">
+        <div class="status-dot"></div>
+        <span style="font-size:.78rem;color:#22c55e;font-weight:600;">10 Agents Online</span>
       </div>
+    </div>
+  </nav>
 
-      <div style="display:flex;align-items:center;justify-content:center;gap:.5rem;color:rgba(255,255,255,.25);font-size:.82rem;">
-        <span>Scroll down to choose your agent</span>
-        <svg style="animation:arrowBounce 1s ease-in-out infinite;" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
-      </div>
-    </section>
-
-    <!-- GRID LABEL -->
-    <div style="text-align:center;margin-bottom:1.5rem;position:relative;z-index:1;">
-      <span class="section-head" style="font-size:.75rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.3);">
-        Choose Your Specialist
-      </span>
+  <!-- HERO -->
+  <section style="text-align:center;padding:6rem 1.5rem 3rem;max-width:960px;margin:0 auto;" class="fade-in">
+    <div style="display:inline-flex;align-items:center;gap:.5rem;background:rgba(99,102,241,.12);border:1px solid rgba(99,102,241,.3);border-radius:999px;padding:.4rem 1.1rem;font-size:.8rem;color:#a5b4fc;font-weight:600;margin-bottom:2rem;animation:badgeFloat 3s ease-in-out infinite;">
+      🚀 Next-Gen AI Workforce — Pick Your Agent Below
     </div>
 
-    <!-- AGENT GRID -->
-    <section style="max-width:1400px;margin:0 auto;padding:0 1.25rem 5rem;position:relative;z-index:1;">
-      <div id="agent-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:1.25rem;"></div>
-    </section>
+    <h1 style="font-size:clamp(3rem,8vw,6rem);font-weight:900;line-height:1.02;letter-spacing:-.04em;margin-bottom:1.25rem;">
+      <span class="glitch" style="color:#fff;">Your AI Team.</span><br/>
+      <span class="hero-title">Always Ready.</span>
+    </h1>
 
-    <!-- FEATURES -->
-    <section style="border-top:1px solid rgba(255,255,255,.06);padding:3rem 1.5rem;position:relative;z-index:1;">
-      <div style="max-width:900px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:2rem;text-align:center;">
-        <div>
-          <div style="font-size:1.8rem;margin-bottom:.5rem;">⚡</div>
-          <div style="font-weight:700;color:#fff;margin-bottom:.3rem;">Gemini 2.0 Flash</div>
-          <div style="font-size:.82rem;color:rgba(255,255,255,.35);">State-of-the-art AI model with sub-second response times</div>
-        </div>
-        <div>
-          <div style="font-size:1.8rem;margin-bottom:.5rem;">🧠</div>
-          <div style="font-weight:700;color:#fff;margin-bottom:.3rem;">Expert System Prompts</div>
-          <div style="font-size:.82rem;color:rgba(255,255,255,.35);">Each agent has a hand-crafted 20+ year expert persona</div>
-        </div>
-        <div>
-          <div style="font-size:1.8rem;margin-bottom:.5rem;">💬</div>
-          <div style="font-weight:700;color:#fff;margin-bottom:.3rem;">Full Chat Memory</div>
-          <div style="font-size:.82rem;color:rgba(255,255,255,.35);">Multi-turn conversations that remember everything you've said</div>
-        </div>
-        <div>
-          <div style="font-size:1.8rem;margin-bottom:.5rem;">📋</div>
-          <div style="font-weight:700;color:#fff;margin-bottom:.3rem;">Rich Formatting</div>
-          <div style="font-size:.82rem;color:rgba(255,255,255,.35);">Tables, code blocks, bullet lists — responses that look great</div>
-        </div>
+    <p style="font-size:1.1rem;color:rgba(255,255,255,.45);max-width:580px;margin:0 auto 2.5rem;line-height:1.8;">
+      10 elite AI specialists — each a master of their domain. Powered by <strong style="color:#a5b4fc;">Groq's Llama 3.3 70B</strong> for lightning-fast, expert-level responses.
+    </p>
+
+    <!-- Stats -->
+    <div style="display:flex;justify-content:center;gap:3rem;flex-wrap:wrap;margin-bottom:3rem;">
+      <div style="text-align:center;">
+        <div style="font-size:2.4rem;font-weight:900;background:linear-gradient(135deg,#a5b4fc,#c084fc);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1;">10</div>
+        <div style="font-size:.72rem;color:rgba(255,255,255,.32);margin-top:3px;">AI Agents</div>
       </div>
-    </section>
+      <div style="width:1px;background:rgba(255,255,255,.08);"></div>
+      <div style="text-align:center;">
+        <div style="font-size:2.4rem;font-weight:900;background:linear-gradient(135deg,#a5b4fc,#c084fc);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1;">&lt;1s</div>
+        <div style="font-size:.72rem;color:rgba(255,255,255,.32);margin-top:3px;">Response Time</div>
+      </div>
+      <div style="width:1px;background:rgba(255,255,255,.08);"></div>
+      <div style="text-align:center;">
+        <div style="font-size:2.4rem;font-weight:900;background:linear-gradient(135deg,#a5b4fc,#c084fc);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1;">∞</div>
+        <div style="font-size:.72rem;color:rgba(255,255,255,.32);margin-top:3px;">Memory</div>
+      </div>
+      <div style="width:1px;background:rgba(255,255,255,.08);"></div>
+      <div style="text-align:center;">
+        <div style="font-size:2.4rem;font-weight:900;background:linear-gradient(135deg,#a5b4fc,#c084fc);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1;">🎙</div>
+        <div style="font-size:.72rem;color:rgba(255,255,255,.32);margin-top:3px;">Voice Input</div>
+      </div>
+    </div>
+
+    <div style="display:flex;align-items:center;justify-content:center;gap:.5rem;color:rgba(255,255,255,.22);font-size:.82rem;animation:badgeFloat 2s ease-in-out infinite;">
+      Scroll to choose your agent ↓
+    </div>
+  </section>
+
+  <!-- GRID -->
+  <div style="text-align:center;margin-bottom:1.5rem;position:relative;z-index:1;">
+    <span style="font-size:.73rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.25);">Choose Your Specialist</span>
+  </div>
+  <section style="max-width:1400px;margin:0 auto;padding:0 1.25rem 5rem;position:relative;z-index:1;">
+    <div id="agent-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:1.25rem;"></div>
+  </section>
+
+  <!-- FEATURES -->
+  <section style="border-top:1px solid rgba(255,255,255,.06);padding:3.5rem 1.5rem;position:relative;z-index:1;">
+    <div style="max-width:960px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:2rem;text-align:center;">
+      <div><div style="font-size:2rem;margin-bottom:.6rem;">⚡</div><div style="font-weight:700;color:#fff;margin-bottom:.3rem;">Groq Speed</div><div style="font-size:.81rem;color:rgba(255,255,255,.33);">300+ tokens/sec hardware-accelerated inference</div></div>
+      <div><div style="font-size:2rem;margin-bottom:.6rem;">🧠</div><div style="font-weight:700;color:#fff;margin-bottom:.3rem;">Expert Personas</div><div style="font-size:.81rem;color:rgba(255,255,255,.33);">Hand-crafted 20+ year expert system prompts</div></div>
+      <div><div style="font-size:2rem;margin-bottom:.6rem;">🎙️</div><div style="font-weight:700;color:#fff;margin-bottom:.3rem;">Voice Input</div><div style="font-size:.81rem;color:rgba(255,255,255,.33);">Speak your questions, hear the answers back</div></div>
+      <div><div style="font-size:2rem;margin-bottom:.6rem;">🌌</div><div style="font-weight:700;color:#fff;margin-bottom:.3rem;">Solar System UI</div><div style="font-size:.81rem;color:rgba(255,255,255,.33);">Live animated universe background with orbiting planets</div></div>
+    </div>
+  </section>
+</div>
+
+<!-- ═══════════════ CHAT VIEW ═══════════════ -->
+<div id="chat-view">
+  <div class="chat-header">
+    <button class="back-btn" onclick="goBack()" data-tip="Back to agents">
+      <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+    </button>
+    <img id="chat-avatar" class="chat-avatar" src="" alt=""/>
+    <div style="flex:1;min-width:0;">
+      <div style="display:flex;align-items:center;gap:.5rem;">
+        <span id="chat-name" style="font-weight:800;font-size:1rem;"></span>
+        <span style="background:rgba(99,102,241,.2);border:1px solid rgba(99,102,241,.35);border-radius:999px;padding:1px 8px;font-size:.65rem;font-weight:700;color:#a5b4fc;">AI Expert</span>
+      </div>
+      <div style="font-size:.75rem;color:rgba(255,255,255,.33);" id="chat-desc"></div>
+    </div>
+    <div class="gemini-badge" id="chat-badge" style="display:none;">⚡ Groq</div>
+    <button onclick="clearChat()" data-tip="Clear chat" style="width:34px;height:34px;border-radius:9px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;cursor:pointer;color:rgba(255,255,255,.4);transition:all .2s;" onmouseenter="this.style.background='rgba(239,68,68,.15)';this.style.color='#f87171'" onmouseleave="this.style.background='rgba(255,255,255,.04)';this.style.color='rgba(255,255,255,.4)'">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+    </button>
   </div>
 
-  <!-- ===== CHAT VIEW ===== -->
-  <div id="chat-view">
-    <div class="chat-header">
-      <button class="back-btn" onclick="goBack()" data-tip="Back to agents">
-        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+  <!-- Quick chips -->
+  <div id="quick-chips" style="display:flex;gap:.5rem;padding:.6rem 1.25rem;overflow-x:auto;border-bottom:1px solid rgba(255,255,255,.05);background:rgba(2,2,10,.7);" class="chips-scroll"></div>
+
+  <div class="chat-messages" id="chat-messages"></div>
+
+  <div class="chat-input-area">
+    <!-- Voice status bar -->
+    <div id="voice-status" style="display:none;align-items:center;gap:.65rem;padding:.4rem .5rem .7rem;color:#a5b4fc;font-size:.8rem;font-weight:600;">
+      <div class="voice-wave"><div class="voice-bar"></div><div class="voice-bar"></div><div class="voice-bar"></div><div class="voice-bar"></div><div class="voice-bar"></div></div>
+      Listening… speak now
+    </div>
+    <div class="input-box">
+      <textarea id="chat-input" rows="1" placeholder="Ask anything… or click 🎙 to speak" onkeydown="handleKeydown(event)" oninput="autoResize(this)"></textarea>
+      <button class="mic-btn" id="mic-btn" onclick="toggleVoice()" data-tip="Voice input">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
       </button>
-      <img id="chat-avatar" class="chat-avatar" src="" alt="" />
-      <div style="flex:1;min-width:0;">
-        <div style="display:flex;align-items:center;gap:.5rem;">
-          <span id="chat-name" style="font-weight:800;font-size:1rem;"></span>
-          <span style="background:rgba(99,102,241,.2);border:1px solid rgba(99,102,241,.35);border-radius:999px;padding:1px 8px;font-size:.65rem;font-weight:700;color:#a5b4fc;">AI Expert</span>
-        </div>
-        <div style="font-size:.75rem;color:rgba(255,255,255,.35);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" id="chat-desc"></div>
-      </div>
-      <div class="gemini-badge" style="display:none;" id="gemini-badge-chat">✦ Gemini 2.0</div>
-      <button onclick="clearChat()" data-tip="Clear chat" style="width:34px;height:34px;border-radius:9px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;cursor:pointer;color:rgba(255,255,255,.4);transition:all .2s;" onmouseenter="this.style.background='rgba(239,68,68,.15)';this.style.color='#f87171'" onmouseleave="this.style.background='rgba(255,255,255,.04)';this.style.color='rgba(255,255,255,.4)'">
-        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+      <button class="send-btn" id="send-btn" onclick="sendMessage()">
+        <svg width="15" height="15" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
       </button>
     </div>
-
-    <!-- quick chips -->
-    <div id="quick-chips" style="display:flex;gap:.5rem;padding:.6rem 1.25rem;overflow-x:auto;border-bottom:1px solid rgba(255,255,255,.05);background:rgba(4,4,14,.6);" class="chips-scroll"></div>
-
-    <div class="chat-messages" id="chat-messages"></div>
-
-    <div class="chat-input-area">
-      <div class="input-box">
-        <textarea id="chat-input" rows="1" placeholder="Ask anything…" onkeydown="handleKeydown(event)" oninput="autoResize(this)"></textarea>
-        <button class="send-btn" id="send-btn" onclick="sendMessage()">
-          <svg width="15" height="15" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-        </button>
-      </div>
-      <p style="text-align:center;font-size:.72rem;color:rgba(255,255,255,.18);margin-top:.45rem;">Press Enter to send · Shift+Enter for new line · AI can make mistakes</p>
-    </div>
+    <p style="text-align:center;font-size:.7rem;color:rgba(255,255,255,.16);margin-top:.4rem;">Enter to send · Shift+Enter new line · 🎙 voice input · 🔊 tap any response to hear it</p>
   </div>
+</div>
 
 <script>
-// ══════════════════════════════════════════════════
-// STAR FIELD
-// ══════════════════════════════════════════════════
-(function() {
-  const canvas = document.getElementById('stars-canvas');
-  const ctx = canvas.getContext('2d');
-  let W, H, stars = [];
-  function resize() {
-    W = canvas.width = window.innerWidth;
+// ══════════════════════════════════════════════════════
+//  SOLAR SYSTEM
+// ══════════════════════════════════════════════════════
+(function(){
+  const canvas = document.getElementById('solar-canvas');
+  const ctx    = canvas.getContext('2d');
+  let W, H, t = 0;
+
+  const SUN = { r: 38, color: '#fde68a', glow: 'rgba(253,230,138,.15)' };
+
+  const PLANETS = [
+    { name:'Mercury', a:90,  b:38,  size:5,  speed:.029, color:'#94a3b8', glow:'rgba(148,163,184,.25)', angle:0,  moons:[] },
+    { name:'Venus',   a:145, b:62,  size:8,  speed:.018, color:'#fcd34d', glow:'rgba(252,211,77,.2)',   angle:1.2, moons:[] },
+    { name:'Earth',   a:210, b:92,  size:9,  speed:.012, color:'#60a5fa', glow:'rgba(96,165,250,.25)',  angle:2.4,
+      moons:[{dist:18,size:3,speed:.08,color:'#cbd5e1',angle:0}] },
+    { name:'Mars',    a:275, b:120, size:7,  speed:.009, color:'#f87171', glow:'rgba(248,113,113,.2)',  angle:3.6,
+      moons:[{dist:14,size:2,speed:.12,color:'#e2e8f0',angle:1}] },
+    { name:'Jupiter', a:370, b:165, size:18, speed:.005, color:'#fdba74', glow:'rgba(253,186,116,.2)',  angle:0.8,
+      moons:[
+        {dist:30,size:3,speed:.06,color:'#fef3c7',angle:0},
+        {dist:40,size:3,speed:.04,color:'#fde68a',angle:2},
+        {dist:50,size:3,speed:.03,color:'#fcd34d',angle:4},
+      ]
+    },
+    { name:'Saturn',  a:490, b:215, size:15, speed:.003, color:'#fde68a', glow:'rgba(253,230,138,.15)', angle:2.1,
+      rings:true,
+      moons:[{dist:32,size:2,speed:.04,color:'#fef3c7',angle:1.5}]
+    },
+    { name:'Uranus',  a:610, b:265, size:11, speed:.002, color:'#67e8f9', glow:'rgba(103,232,249,.15)', angle:4.5, moons:[] },
+    { name:'Neptune', a:720, b:315, size:11, speed:.001, color:'#818cf8', glow:'rgba(129,140,248,.15)', angle:1.7, moons:[] },
+  ];
+
+  const ASTEROIDS = Array.from({length:60}, ()=>({
+    a: 310 + Math.random()*30,
+    b: 135 + Math.random()*14,
+    angle: Math.random()*Math.PI*2,
+    speed: .005 + Math.random()*.008,
+    size: .7 + Math.random()*1.4,
+    color:`rgba(${180+Math.random()*60|0},${180+Math.random()*60|0},${180+Math.random()*60|0},.5)`
+  }));
+
+  // Stars
+  const STARS = Array.from({length:280}, ()=>({
+    x: Math.random(), y: Math.random(),
+    r: Math.random()*1.3+.2,
+    o: Math.random(), v: Math.random()*.003+.001,
+    dx:(Math.random()-.5)*.08
+  }));
+
+  // Shooting stars
+  const SHOOTS = [];
+  function spawnShoot(){
+    SHOOTS.push({ x:Math.random(), y:Math.random()*.5, len:Math.random()*120+60, angle:Math.PI/6+Math.random()*.3, speed:0.004+Math.random()*.006, progress:0, opacity:1 });
+  }
+  setInterval(spawnShoot, 3500);
+
+  function resize(){
+    W = canvas.width  = window.innerWidth;
     H = canvas.height = window.innerHeight;
   }
-  function makeStar() {
-    return { x: Math.random()*W, y: Math.random()*H, r: Math.random()*1.4+.2, o: Math.random(), v: Math.random()*.004+.001, dx: (Math.random()-.5)*.15 };
+  window.addEventListener('resize', resize);
+  resize();
+
+  const cx = ()=> W*.5;
+  const cy = ()=> H*.5;
+
+  function drawOrbit(a,b){
+    ctx.save();
+    ctx.translate(cx(), cy());
+    ctx.beginPath();
+    ctx.ellipse(0,0,a,b,0,0,Math.PI*2);
+    ctx.strokeStyle = 'rgba(255,255,255,.04)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    ctx.restore();
   }
-  function init() { resize(); stars = Array.from({length:180}, makeStar); }
-  function draw() {
-    ctx.clearRect(0,0,W,H);
-    stars.forEach(s => {
-      s.o += s.v; if(s.o>1||s.o<0) s.v*=-1;
-      s.x += s.dx; if(s.x<0) s.x=W; if(s.x>W) s.x=0;
-      ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
-      ctx.fillStyle = `rgba(255,255,255,${s.o.toFixed(2)})`; ctx.fill();
+
+  function planetPos(p, angle){
+    return {
+      x: cx() + p.a * Math.cos(angle),
+      y: cy() + p.b * Math.sin(angle)
+    };
+  }
+
+  function drawPlanet(p){
+    const angle = p.angle + t * p.speed;
+    const {x,y} = planetPos(p, angle);
+
+    // Glow
+    if(p.glow){
+      const g = ctx.createRadialGradient(x,y,0,x,y,p.size*3.5);
+      g.addColorStop(0, p.glow);
+      g.addColorStop(1,'transparent');
+      ctx.fillStyle=g;
+      ctx.beginPath();ctx.arc(x,y,p.size*3.5,0,Math.PI*2);ctx.fill();
+    }
+
+    // Saturn rings
+    if(p.rings){
+      ctx.save();
+      ctx.translate(x,y);
+      ctx.scale(1,.35);
+      ctx.beginPath();
+      ctx.arc(0,0,p.size*2.6,0,Math.PI*2);
+      ctx.strokeStyle='rgba(253,230,138,.3)';
+      ctx.lineWidth=5; ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(0,0,p.size*2.1,0,Math.PI*2);
+      ctx.strokeStyle='rgba(253,230,138,.2)';
+      ctx.lineWidth=3; ctx.stroke();
+      ctx.restore();
+    }
+
+    // Planet body
+    const grad = ctx.createRadialGradient(x-p.size*.3,y-p.size*.3,0,x,y,p.size);
+    grad.addColorStop(0,'#fff');
+    grad.addColorStop(.3,p.color);
+    grad.addColorStop(1,p.color+'88');
+    ctx.beginPath();ctx.arc(x,y,p.size,0,Math.PI*2);
+    ctx.fillStyle=grad; ctx.fill();
+
+    // Moons
+    (p.moons||[]).forEach(m=>{
+      const ma = m.angle + t * m.speed;
+      const mx = x + m.dist * Math.cos(ma);
+      const my = y + m.dist * Math.sin(ma) * .5;
+      ctx.beginPath();ctx.arc(mx,my,m.size,0,Math.PI*2);
+      ctx.fillStyle=m.color; ctx.fill();
     });
-    requestAnimationFrame(draw);
   }
-  window.addEventListener('resize', () => { resize(); });
-  init(); draw();
+
+  function loop(){
+    ctx.clearRect(0,0,W,H);
+
+    // Stars
+    STARS.forEach(s=>{
+      s.o+=s.v; if(s.o>1||s.o<0)s.v*=-1;
+      s.x+=s.dx/W; if(s.x<0)s.x=1; if(s.x>1)s.x=0;
+      ctx.beginPath(); ctx.arc(s.x*W,s.y*H,s.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(255,255,255,${s.o.toFixed(2)})`; ctx.fill();
+    });
+
+    // Shooting stars
+    for(let i=SHOOTS.length-1;i>=0;i--){
+      const s=SHOOTS[i];
+      s.progress+=s.speed;
+      if(s.progress>=1){ SHOOTS.splice(i,1); continue; }
+      const sx=s.x*W, sy=s.y*H;
+      const ex=sx+Math.cos(s.angle)*s.len*s.progress;
+      const ey=sy+Math.sin(s.angle)*s.len*s.progress;
+      const g2=ctx.createLinearGradient(sx,sy,ex,ey);
+      g2.addColorStop(0,'transparent');
+      g2.addColorStop(1,`rgba(255,255,255,${(1-s.progress)*.8})`);
+      ctx.beginPath(); ctx.moveTo(sx,sy); ctx.lineTo(ex,ey);
+      ctx.strokeStyle=g2; ctx.lineWidth=1.5; ctx.stroke();
+    }
+
+    // Sun glow
+    const sunG = ctx.createRadialGradient(cx(),cy(),0,cx(),cy(),120);
+    sunG.addColorStop(0,'rgba(253,230,138,.25)');
+    sunG.addColorStop(.4,'rgba(253,186,116,.08)');
+    sunG.addColorStop(1,'transparent');
+    ctx.fillStyle=sunG; ctx.beginPath(); ctx.arc(cx(),cy(),120,0,Math.PI*2); ctx.fill();
+
+    // Sun corona
+    for(let i=0;i<3;i++){
+      const r=SUN.r*(1.4+i*.6)+(Math.sin(t*.02+i)*.5);
+      ctx.beginPath(); ctx.arc(cx(),cy(),r,0,Math.PI*2);
+      ctx.strokeStyle=`rgba(253,230,138,${.08-i*.025})`; ctx.lineWidth=2; ctx.stroke();
+    }
+
+    // Sun
+    const sunGrad=ctx.createRadialGradient(cx()-10,cy()-10,0,cx(),cy(),SUN.r);
+    sunGrad.addColorStop(0,'#fff');
+    sunGrad.addColorStop(.3,'#fef08a');
+    sunGrad.addColorStop(.7,SUN.color);
+    sunGrad.addColorStop(1,'#f97316');
+    ctx.beginPath(); ctx.arc(cx(),cy(),SUN.r,0,Math.PI*2);
+    ctx.fillStyle=sunGrad; ctx.fill();
+
+    // Asteroid belt
+    ASTEROIDS.forEach(a=>{
+      a.angle+=a.speed*.01;
+      const ax=cx()+a.a*Math.cos(a.angle);
+      const ay=cy()+a.b*Math.sin(a.angle);
+      ctx.beginPath(); ctx.arc(ax,ay,a.size,0,Math.PI*2);
+      ctx.fillStyle=a.color; ctx.fill();
+    });
+
+    // Orbits
+    PLANETS.forEach(p=>drawOrbit(p.a,p.b));
+
+    // Planets
+    PLANETS.forEach(p=>drawPlanet(p));
+
+    t++;
+    requestAnimationFrame(loop);
+  }
+  loop();
 })();
 
-// ══════════════════════════════════════════════════
-// MOUSE PARALLAX ORBS
-// ══════════════════════════════════════════════════
-document.addEventListener('mousemove', e => {
-  const orbs = document.querySelectorAll('.orb');
-  const cx = e.clientX/window.innerWidth - .5;
-  const cy = e.clientY/window.innerHeight - .5;
-  orbs.forEach((o,i) => {
-    const s = (i+1)*12;
-    o.style.transform = `translate(${cx*s}px,${cy*s}px)`;
+// ══════════════════════════════════════════════════════
+//  MOUSE PARALLAX
+// ══════════════════════════════════════════════════════
+document.addEventListener('mousemove', e=>{
+  const cx=e.clientX/window.innerWidth-.5;
+  const cy=e.clientY/window.innerHeight-.5;
+  document.querySelectorAll('.orb').forEach((o,i)=>{
+    const s=(i+1)*10;
+    o.style.transform=`translate(${cx*s}px,${cy*s}px)`;
   });
 });
 
-// ══════════════════════════════════════════════════
-// AGENT DATA
-// ══════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════
+//  AGENTS DATA
+// ══════════════════════════════════════════════════════
 const AGENTS = [
-  {
-    id:'sales', name:'Sales Agent', emoji:'🤝',
-    avatar:'https://media.base44.com/images/public/6a2f7a64853ac938f55fb360/c173183c0_generated_image.png',
-    tagline:'Close deals & generate leads',
-    description:'Lead qualification, cold outreach, pitch crafting, BANT/MEDDIC, and closing strategies.',
-    accent:'#f97316', grad:'from-orange-500 to-red-500', border:'rgba(249,115,22,.4)',
-    glow:'rgba(249,115,22,.18)',
-    skills:['Cold Outreach','Objection Handling','BANT Qualification','Closing Techniques','Pipeline Strategy'],
-    prompts:['Write a cold email for my SaaS targeting CTOs','How do I handle "your price is too high"?','Create a 5-step follow-up sequence','Give me a BANT qualification checklist']
-  },
-  {
-    id:'email', name:'Email Agent', emoji:'📧',
-    avatar:'https://media.base44.com/images/public/6a2f7a64853ac938f55fb360/c953e6fd6_generated_image.png',
-    tagline:'Craft perfect emails instantly',
-    description:'Professional emails, cold outreach, follow-up drips, newsletters, and subject lines that get opened.',
-    accent:'#3b82f6', grad:'from-blue-500 to-cyan-500', border:'rgba(59,130,246,.4)',
-    glow:'rgba(59,130,246,.18)',
-    skills:['Cold Outreach','Follow-up Sequences','Newsletter Writing','Subject Line A/B','Thread Summarization'],
-    prompts:['Write a follow-up after a demo that went well','Draft 5 subject line variations for a launch','Create a 7-email drip campaign','Write an apology email for a delayed order']
-  },
-  {
-    id:'analyst', name:'Data Analyst', emoji:'📊',
-    avatar:'https://media.base44.com/images/public/6a2f7a64853ac938f55fb360/8af3dd650_generated_image.png',
-    tagline:'Turn data into decisions',
-    description:'SQL queries, Python analysis, trend detection, KPI frameworks, and executive-ready reports.',
-    accent:'#8b5cf6', grad:'from-violet-500 to-purple-600', border:'rgba(139,92,246,.4)',
-    glow:'rgba(139,92,246,.18)',
-    skills:['SQL Query Writing','KPI Definition','Trend Analysis','A/B Test Design','Dashboard Planning'],
-    prompts:['Write a SQL query for top customers by revenue','What KPIs should an e-commerce store track?','Explain cohort analysis simply','Design an A/B test for my pricing page']
-  },
-  {
-    id:'marketing', name:'Marketing Agent', emoji:'🎯',
-    avatar:'https://media.base44.com/images/public/6a2f7a64853ac938f55fb360/9086806e4_generated_image.png',
-    tagline:'Campaigns that convert',
-    description:'Full-funnel strategy, social media, SEO, paid ads, and brand positioning. CMO-level thinking.',
-    accent:'#ec4899', grad:'from-pink-500 to-rose-500', border:'rgba(236,72,153,.4)',
-    glow:'rgba(236,72,153,.18)',
-    skills:['Campaign Strategy','Social Media Content','SEO / SEM','Ad Copywriting','Brand Messaging'],
-    prompts:['Create a 30-day Instagram campaign for a fitness app','Write Google Ad copy for a project management tool','How do I rank #1 for a competitive keyword?','Give me 10 viral LinkedIn post ideas']
-  },
-  {
-    id:'hr', name:'HR Agent', emoji:'💼',
-    avatar:'https://media.base44.com/images/public/6a2f7a64853ac938f55fb360/2f963d8a6_generated_image.png',
-    tagline:'Build & manage great teams',
-    description:'Job descriptions, interview frameworks, performance reviews, HR policies, and onboarding plans.',
-    accent:'#14b8a6', grad:'from-teal-500 to-emerald-500', border:'rgba(20,184,166,.4)',
-    glow:'rgba(20,184,166,.18)',
-    skills:['Job Descriptions','Interview Questions','Performance Reviews','HR Policies','Onboarding Plans'],
-    prompts:['Write a JD for a Senior Full Stack Engineer','Give me 10 behavioral interview questions','Draft a remote work policy','Create a 90-day onboarding plan']
-  },
-  {
-    id:'content', name:'Content Writer', emoji:'📝',
-    avatar:'https://media.base44.com/images/public/6a2f7a64853ac938f55fb360/3382ac371_generated_image.png',
-    tagline:'Words that engage & convert',
-    description:'Blog posts, social captions, video scripts, whitepapers, and landing page copy in any voice.',
-    accent:'#eab308', grad:'from-yellow-500 to-amber-500', border:'rgba(234,179,8,.4)',
-    glow:'rgba(234,179,8,.18)',
-    skills:['SEO Blog Posts','Social Captions','Video Scripts','Product Copy','Ghostwriting'],
-    prompts:['Write a 1000-word SEO blog on AI productivity tools','Create 5 Instagram captions for a coffee brand','Write a YouTube script on remote work tips','Draft a press release for a product launch']
-  },
-  {
-    id:'support', name:'Customer Support', emoji:'🛠️',
-    avatar:'https://media.base44.com/images/public/6a2f7a64853ac938f55fb360/7f04eaf3a_generated_image.png',
-    tagline:'Resolve issues, delight customers',
-    description:'Response templates, de-escalation scripts, FAQ creation, SLA policies, and support SOPs.',
-    accent:'#0ea5e9', grad:'from-sky-500 to-blue-600', border:'rgba(14,165,233,.4)',
-    glow:'rgba(14,165,233,.18)',
-    skills:['Response Templates','De-escalation Scripts','FAQ Writing','CSAT Strategy','Support SOPs'],
-    prompts:['Draft a response to an angry refund request','Create an FAQ for a SaaS product','Write a de-escalation script for billing disputes','Design a ticket triage system']
-  },
-  {
-    id:'finance', name:'Finance Agent', emoji:'💰',
-    avatar:'https://media.base44.com/images/public/6a2f7a64853ac938f55fb360/3f3cdf4fb_generated_image.png',
-    tagline:'Financials, forecasts & strategy',
-    description:'Budgets, P&L analysis, financial modeling, cash flow forecasting, and startup fundraising.',
-    accent:'#22c55e', grad:'from-green-500 to-emerald-600', border:'rgba(34,197,94,.4)',
-    glow:'rgba(34,197,94,.18)',
-    skills:['Budget Planning','Cash Flow Analysis','Financial Modeling','Startup Fundraising','Pricing Strategy'],
-    prompts:['Create a 12-month financial projection for a SaaS','What metrics do VCs look for in Series A?','How do I calculate burn rate and runway?','Draft a pricing strategy for a B2B tool']
-  },
-  {
-    id:'legal', name:'Legal Agent', emoji:'⚖️',
-    avatar:'https://media.base44.com/images/public/6a2f7a64853ac938f55fb360/460574703_generated_image.png',
-    tagline:'Contracts, compliance & clarity',
-    description:'NDA drafting, privacy policies, employment agreements, IP guidance, and GDPR compliance.',
-    accent:'#94a3b8', grad:'from-slate-400 to-gray-500', border:'rgba(148,163,184,.4)',
-    glow:'rgba(148,163,184,.18)',
-    skills:['NDA & Contracts','Privacy Policies','Employment Agreements','IP Guidance','GDPR Compliance'],
-    prompts:['Draft an NDA for sharing product specs','Write Terms of Service for a SaaS','What is GDPR compliance for small businesses?','Create an employee IP assignment clause']
-  },
-  {
-    id:'product', name:'Product Manager', emoji:'🚀',
-    avatar:'https://media.base44.com/images/public/6a2f7a64853ac938f55fb360/a9904c3da_generated_image.png',
-    tagline:'Ship great products, faster',
-    description:'PRDs, user stories, roadmaps, OKRs, competitive analysis, and go-to-market plans.',
-    accent:'#6366f1', grad:'from-indigo-500 to-violet-600', border:'rgba(99,102,241,.4)',
-    glow:'rgba(99,102,241,.18)',
-    skills:['PRD Writing','User Stories','Roadmap Planning','OKR Setting','Go-to-Market Strategy'],
-    prompts:['Write a PRD for a mobile notifications feature','Create a Q3 product roadmap','Define OKRs for a mobile app team','Prioritize these features using RICE scoring']
-  }
+  { id:'sales',    name:'Sales Agent',      emoji:'🤝', avatar:'https://media.base44.com/images/public/6a2f7a64853ac938f55fb360/c173183c0_generated_image.png', tagline:'Close deals & generate leads',       accent:'#f97316', border:'rgba(249,115,22,.4)', glow:'rgba(249,115,22,.18)', skills:['Cold Outreach','Objection Handling','BANT Qualification','Closing Techniques','Pipeline Strategy'], prompts:['Write a cold email for my SaaS targeting CTOs','How do I handle "your price is too high"?','Create a 5-step follow-up sequence','Give me a BANT qualification checklist'] },
+  { id:'email',    name:'Email Agent',      emoji:'📧', avatar:'https://media.base44.com/images/public/6a2f7a64853ac938f55fb360/c953e6fd6_generated_image.png', tagline:'Craft perfect emails instantly',        accent:'#3b82f6', border:'rgba(59,130,246,.4)',  glow:'rgba(59,130,246,.18)',  skills:['Cold Outreach','Follow-up Sequences','Newsletter Writing','Subject Line A/B','Thread Summarization'], prompts:['Write a follow-up after a demo that went well','Draft 5 subject line variations for a launch','Create a 7-email drip campaign','Write an apology email for a delayed order'] },
+  { id:'analyst',  name:'Data Analyst',     emoji:'📊', avatar:'https://media.base44.com/images/public/6a2f7a64853ac938f55fb360/8af3dd650_generated_image.png', tagline:'Turn data into decisions',             accent:'#8b5cf6', border:'rgba(139,92,246,.4)',  glow:'rgba(139,92,246,.18)',  skills:['SQL Query Writing','KPI Definition','Trend Analysis','A/B Test Design','Dashboard Planning'], prompts:['Write a SQL query for top customers by revenue','What KPIs should an e-commerce store track?','Explain cohort analysis simply','Design an A/B test for my pricing page'] },
+  { id:'marketing',name:'Marketing Agent',  emoji:'🎯', avatar:'https://media.base44.com/images/public/6a2f7a64853ac938f55fb360/9086806e4_generated_image.png', tagline:'Campaigns that convert',               accent:'#ec4899', border:'rgba(236,72,153,.4)',  glow:'rgba(236,72,153,.18)',  skills:['Campaign Strategy','Social Media Content','SEO / SEM','Ad Copywriting','Brand Messaging'], prompts:['Create a 30-day Instagram campaign for a fitness app','Write Google Ad copy for a project management tool','How do I rank #1 for a competitive keyword?','Give me 10 viral LinkedIn post ideas'] },
+  { id:'hr',       name:'HR Agent',         emoji:'💼', avatar:'https://media.base44.com/images/public/6a2f7a64853ac938f55fb360/2f963d8a6_generated_image.png', tagline:'Build & manage great teams',           accent:'#14b8a6', border:'rgba(20,184,166,.4)',  glow:'rgba(20,184,166,.18)',  skills:['Job Descriptions','Interview Questions','Performance Reviews','HR Policies','Onboarding Plans'], prompts:['Write a JD for a Senior Full Stack Engineer','Give me 10 behavioral interview questions','Draft a remote work policy','Create a 90-day onboarding plan'] },
+  { id:'content',  name:'Content Writer',   emoji:'📝', avatar:'https://media.base44.com/images/public/6a2f7a64853ac938f55fb360/3382ac371_generated_image.png', tagline:'Words that engage & convert',          accent:'#eab308', border:'rgba(234,179,8,.4)',   glow:'rgba(234,179,8,.18)',   skills:['SEO Blog Posts','Social Captions','Video Scripts','Product Copy','Ghostwriting'], prompts:['Write a 1000-word SEO blog on AI productivity tools','Create 5 Instagram captions for a coffee brand','Write a YouTube script on remote work tips','Draft a press release for a product launch'] },
+  { id:'support',  name:'Customer Support', emoji:'🛠️', avatar:'https://media.base44.com/images/public/6a2f7a64853ac938f55fb360/7f04eaf3a_generated_image.png', tagline:'Resolve issues, delight customers',    accent:'#0ea5e9', border:'rgba(14,165,233,.4)',  glow:'rgba(14,165,233,.18)',  skills:['Response Templates','De-escalation Scripts','FAQ Writing','CSAT Strategy','Support SOPs'], prompts:['Draft a response to an angry refund request','Create an FAQ for a SaaS product','Write a de-escalation script for billing disputes','Design a ticket triage system'] },
+  { id:'finance',  name:'Finance Agent',    emoji:'💰', avatar:'https://media.base44.com/images/public/6a2f7a64853ac938f55fb360/3f3cdf4fb_generated_image.png', tagline:'Financials, forecasts & strategy',     accent:'#22c55e', border:'rgba(34,197,94,.4)',   glow:'rgba(34,197,94,.18)',   skills:['Budget Planning','Cash Flow Analysis','Financial Modeling','Startup Fundraising','Pricing Strategy'], prompts:['Create a 12-month financial projection for a SaaS','What metrics do VCs look for in Series A?','How do I calculate burn rate and runway?','Draft a pricing strategy for a B2B tool'] },
+  { id:'legal',    name:'Legal Agent',      emoji:'⚖️', avatar:'https://media.base44.com/images/public/6a2f7a64853ac938f55fb360/460574703_generated_image.png', tagline:'Contracts, compliance & clarity',      accent:'#94a3b8', border:'rgba(148,163,184,.4)', glow:'rgba(148,163,184,.18)', skills:['NDA & Contracts','Privacy Policies','Employment Agreements','IP Guidance','GDPR Compliance'], prompts:['Draft an NDA for sharing product specs','Write Terms of Service for a SaaS','What is GDPR compliance for small businesses?','Create an employee IP assignment clause'] },
+  { id:'product',  name:'Product Manager',  emoji:'🚀', avatar:'https://media.base44.com/images/public/6a2f7a64853ac938f55fb360/a9904c3da_generated_image.png', tagline:'Ship great products, faster',          accent:'#6366f1', border:'rgba(99,102,241,.4)',  glow:'rgba(99,102,241,.18)',  skills:['PRD Writing','User Stories','Roadmap Planning','OKR Setting','Go-to-Market Strategy'], prompts:['Write a PRD for a mobile notifications feature','Create a Q3 product roadmap','Define OKRs for a mobile app team','Prioritize features using RICE scoring'] },
 ];
 
-// ══════════════════════════════════════════════════
-// RENDER CARDS
-// ══════════════════════════════════════════════════
-function renderCards() {
+// ══════════════════════════════════════════════════════
+//  RENDER CARDS
+// ══════════════════════════════════════════════════════
+function renderCards(){
   const grid = document.getElementById('agent-grid');
-  grid.innerHTML = AGENTS.map((a, i) => `
-    <div class="agent-card ac-${a.id}"
-         style="animation-delay:${i*60}ms;"
-         onclick="selectAgent('${a.id}')"
-         onmouseenter="spawnParticles(this, '${a.accent}')"
-    >
-      <!-- top gradient line -->
+  grid.innerHTML = AGENTS.map((a,i)=>`
+    <div class="agent-card" style="animation-delay:${i*55}ms;" onclick="selectAgent('${a.id}')" onmouseenter="spawnParticles(this,'${a.accent}')">
       <div class="top-line" style="background:linear-gradient(90deg,${a.accent},transparent);"></div>
-
       <div style="padding:1.4rem 1.25rem;">
-        <!-- Avatar -->
         <div class="avatar-wrap">
           <div class="avatar-ring" style="background:conic-gradient(${a.accent},transparent,${a.accent});"></div>
-          <img class="avatar-img" src="${a.avatar}" alt="${a.name}"
-               style="box-shadow:0 0 30px ${a.glow};"
-               onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
+          <img class="avatar-img" src="${a.avatar}" alt="${a.name}" style="box-shadow:0 0 28px ${a.glow};" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"/>
           <div style="display:none;width:90px;height:90px;border-radius:50%;align-items:center;justify-content:center;font-size:2.5rem;background:rgba(255,255,255,.05);border:2px solid rgba(255,255,255,.1);">${a.emoji}</div>
           <div class="online-dot"></div>
         </div>
-
-        <!-- Index badge -->
-        <div style="position:absolute;top:1rem;right:1rem;font-size:.65rem;font-family:monospace;color:rgba(255,255,255,.2);">#${String(i+1).padStart(2,'0')}</div>
-
-        <!-- Name & tagline -->
+        <div style="position:absolute;top:1rem;right:1rem;font-size:.62rem;font-family:monospace;color:rgba(255,255,255,.18);">#${String(i+1).padStart(2,'0')}</div>
         <h3 style="font-weight:800;font-size:.97rem;color:#fff;margin-bottom:.2rem;text-align:center;">${a.name}</h3>
-        <p style="font-size:.75rem;font-weight:600;color:${a.accent};text-align:center;margin-bottom:.65rem;">${a.tagline}</p>
-
-        <!-- Description -->
-        <p style="font-size:.77rem;color:rgba(255,255,255,.38);line-height:1.55;margin-bottom:.9rem;text-align:center;">${a.description}</p>
-
-        <!-- Skills -->
-        <div style="display:flex;flex-wrap:wrap;gap:.35rem;justify-content:center;margin-bottom:.25rem;">
+        <p style="font-size:.75rem;font-weight:600;color:${a.accent};text-align:center;margin-bottom:.6rem;">${a.tagline}</p>
+        <div style="display:flex;flex-wrap:wrap;gap:.3rem;justify-content:center;margin-bottom:.25rem;">
           ${a.skills.slice(0,3).map(s=>`<span class="skill-tag">${s}</span>`).join('')}
           ${a.skills.length>3?`<span class="skill-tag">+${a.skills.length-3}</span>`:''}
         </div>
-
-        <!-- CTA -->
         <div class="card-cta" style="background:linear-gradient(135deg,${a.accent}cc,${a.accent}88);">
-          <span>Open Agent</span>
-          <span class="arrow-bounce">→</span>
+          <span>Open Agent</span><span style="animation:arrowBounce 1s ease-in-out infinite;display:inline-block;">→</span>
         </div>
       </div>
     </div>
   `).join('');
 }
 
-// ══════════════════════════════════════════════════
-// PARTICLES ON HOVER
-// ══════════════════════════════════════════════════
-function spawnParticles(card, color) {
-  const rect = card.getBoundingClientRect();
-  for (let i=0; i<6; i++) {
-    const p = document.createElement('div');
-    p.className = 'particle';
-    const size = Math.random()*5+3;
-    const angle = Math.random()*360;
-    const dist = Math.random()*60+20;
-    p.style.cssText = `
-      width:${size}px;height:${size}px;
-      background:${color};
-      left:${rect.left+rect.width/2+window.scrollX}px;
-      top:${rect.top+rect.height/2+window.scrollY}px;
-      --tx:${Math.cos(angle)*dist}px;
-      --ty:${Math.sin(angle)*dist}px;
-      animation-duration:${Math.random()*.8+.5}s;
-      position:fixed;z-index:9999;opacity:.8;
-    `;
+// ══════════════════════════════════════════════════════
+//  PARTICLES
+// ══════════════════════════════════════════════════════
+function spawnParticles(card, color){
+  const rect=card.getBoundingClientRect();
+  for(let i=0;i<7;i++){
+    const p=document.createElement('div');
+    p.className='particle';
+    const sz=Math.random()*5+3;
+    const angle=Math.random()*Math.PI*2;
+    const dist=Math.random()*70+25;
+    p.style.cssText=`width:${sz}px;height:${sz}px;background:${color};left:${rect.left+rect.width/2}px;top:${rect.top+rect.height/2}px;--tx:${Math.cos(angle)*dist}px;--ty:${Math.sin(angle)*dist}px;animation-duration:${Math.random()*.8+.5}s;z-index:9999;`;
     document.body.appendChild(p);
-    setTimeout(() => p.remove(), 1300);
+    setTimeout(()=>p.remove(),1300);
   }
 }
 
-// ══════════════════════════════════════════════════
-// STATE
-// ══════════════════════════════════════════════════
-let currentAgent = null;
-let chatHistory  = [];
-let isLoading    = false;
+// ══════════════════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════════════════
+let currentAgent=null, chatHistory=[], isLoading=false;
+const API='https://api.base44.com/api/apps/6a2f7a64853ac938f55fb360/functions/geminiAgent';
 
-const API_URL = 'https://api.base44.com/api/apps/6a2f7a64853ac938f55fb360/functions/geminiAgent';
-
-// ══════════════════════════════════════════════════
-// SELECT AGENT
-// ══════════════════════════════════════════════════
-function selectAgent(id) {
-  currentAgent = AGENTS.find(a=>a.id===id);
-  chatHistory  = [];
-
-  document.getElementById('landing-view').style.display = 'none';
-  const cv = document.getElementById('chat-view');
-  cv.style.display = 'flex';
-
-  // Populate header
-  document.getElementById('chat-avatar').src  = currentAgent.avatar;
-  document.getElementById('chat-avatar').style.boxShadow = `0 0 20px ${currentAgent.glow}`;
-  document.getElementById('chat-name').textContent = currentAgent.name;
-  document.getElementById('chat-desc').textContent = currentAgent.description;
-
-  // Show gemini badge on desktop
-  if(window.innerWidth>640) document.getElementById('gemini-badge-chat').style.display='flex';
-
-  // Clear messages
-  document.getElementById('chat-messages').innerHTML = '';
-
-  // Welcome
-  appendMsg('agent', `## ${currentAgent.emoji} ${currentAgent.name} — Online & Ready!\n\nHey! I'm your **${currentAgent.name}** powered by **Gemini 2.0 Flash**. I specialize in:\n${currentAgent.skills.map(s=>`- **${s}**`).join('\n')}\n\nWhat would you like help with today?`);
-
-  // Chips
-  const chipsEl = document.getElementById('quick-chips');
-  chipsEl.innerHTML = currentAgent.prompts.map(p=>
+// ══════════════════════════════════════════════════════
+//  SELECT AGENT
+// ══════════════════════════════════════════════════════
+function selectAgent(id){
+  currentAgent=AGENTS.find(a=>a.id===id);
+  chatHistory=[];
+  document.getElementById('landing-view').style.display='none';
+  const cv=document.getElementById('chat-view'); cv.style.display='flex';
+  document.getElementById('chat-avatar').src=currentAgent.avatar;
+  document.getElementById('chat-avatar').style.boxShadow=`0 0 20px ${currentAgent.glow}`;
+  document.getElementById('chat-name').textContent=currentAgent.name;
+  document.getElementById('chat-desc').textContent=currentAgent.tagline;
+  if(window.innerWidth>640) document.getElementById('chat-badge').style.display='flex';
+  document.getElementById('chat-messages').innerHTML='';
+  cv.style.background=`radial-gradient(ellipse 70% 50% at 50% 0%, ${currentAgent.glow} 0%, #02020a 55%)`;
+  appendMsg('agent',`## ${currentAgent.emoji} ${currentAgent.name} — Online!\n\nHey! I'm your **${currentAgent.name}** powered by **Groq's Llama 3.3 70B**. I specialize in:\n${currentAgent.skills.map(s=>`- **${s}**`).join('\n')}\n\nWhat would you like help with today? You can also 🎙 **speak** your question!`);
+  document.getElementById('quick-chips').innerHTML=currentAgent.prompts.map(p=>
     `<button class="quick-chip" onclick="useChip('${p.replace(/'/g,"\\'")}')">${p}</button>`
   ).join('');
-
-  // Chat bg color hint
-  cv.style.background = `radial-gradient(ellipse 60% 40% at 50% 0%, ${currentAgent.glow} 0%, #04040e 60%)`;
-
   setTimeout(()=>document.getElementById('chat-input').focus(),100);
 }
 
-function useChip(text) {
-  document.getElementById('chat-input').value = text;
-  document.getElementById('quick-chips').innerHTML = '';
-  sendMessage();
-}
+function useChip(text){ document.getElementById('chat-input').value=text; document.getElementById('quick-chips').innerHTML=''; sendMessage(); }
 
-// ══════════════════════════════════════════════════
-// APPEND MESSAGE
-// ══════════════════════════════════════════════════
-function appendMsg(role, content) {
-  const msgsEl = document.getElementById('chat-messages');
-  const wrapper = document.createElement('div');
-  wrapper.className = 'msg-wrapper';
-  wrapper.style.display = 'flex';
-  wrapper.style.gap = '.6rem';
-  wrapper.style.alignItems = 'flex-end';
-  if(role==='user') wrapper.style.flexDirection='row-reverse';
+// ══════════════════════════════════════════════════════
+//  MESSAGES
+// ══════════════════════════════════════════════════════
+function appendMsg(role, content){
+  const msgsEl=document.getElementById('chat-messages');
+  const wrapper=document.createElement('div');
+  wrapper.className='msg-wrapper';
+  wrapper.style.cssText=`display:flex;gap:.6rem;align-items:flex-end;${role==='user'?'flex-direction:row-reverse;':''}`;
 
-  if(role==='agent') {
-    const av = document.createElement('img');
-    av.className = 'chat-avatar';
-    av.src = currentAgent.avatar;
-    av.onerror = ()=>{ av.style.display='none'; };
+  if(role==='agent'){
+    const av=document.createElement('img');
+    av.className='chat-avatar'; av.src=currentAgent.avatar;
+    av.onerror=()=>{ av.style.display='none'; };
     wrapper.appendChild(av);
   }
 
-  const bubble = document.createElement('div');
-  bubble.className = role==='user' ? 'msg-user' : 'msg-agent';
+  const bubble=document.createElement('div');
+  bubble.className=role==='user'?'msg-user':'msg-agent';
 
-  if(role==='agent') {
-    bubble.innerHTML = marked.parse(content);
-    // Copy button
-    const copyBtn = document.createElement('button');
-    copyBtn.innerHTML = '⎘ Copy';
-    copyBtn.style.cssText = 'float:right;font-size:.68rem;padding:2px 8px;border-radius:6px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.4);cursor:pointer;margin-left:.5rem;transition:all .2s;';
-    copyBtn.onmouseenter = ()=>{ copyBtn.style.background='rgba(99,102,241,.2)'; copyBtn.style.color='#a5b4fc'; };
-    copyBtn.onmouseleave = ()=>{ copyBtn.style.background='rgba(255,255,255,.06)'; copyBtn.style.color='rgba(255,255,255,.4)'; };
-    copyBtn.onclick = ()=>{
-      navigator.clipboard.writeText(content);
-      copyBtn.innerHTML='✓ Copied!';
-      copyBtn.style.color='#22c55e';
-      showToast('Copied to clipboard!');
-      setTimeout(()=>{ copyBtn.innerHTML='⎘ Copy'; copyBtn.style.color='rgba(255,255,255,.4)'; },2000);
-    };
-    bubble.insertBefore(copyBtn, bubble.firstChild);
+  if(role==='agent'){
+    bubble.innerHTML=marked.parse(content);
+    const bar=document.createElement('div');
+    bar.style.cssText='display:flex;align-items:center;gap:.5rem;margin-top:.6rem;border-top:1px solid rgba(255,255,255,.06);padding-top:.5rem;';
+    // Copy btn
+    const copyBtn=document.createElement('button');
+    copyBtn.className='speak-btn'; copyBtn.innerHTML='⎘ Copy';
+    copyBtn.onclick=()=>{ navigator.clipboard.writeText(content); copyBtn.innerHTML='✓ Copied!'; showToast('Copied!'); setTimeout(()=>copyBtn.innerHTML='⎘ Copy',2000); };
+    // Speak btn
+    const speakBtn=document.createElement('button');
+    speakBtn.className='speak-btn'; speakBtn.innerHTML='🔊 Speak';
+    speakBtn.onclick=()=>speakText(content, speakBtn);
+    bar.appendChild(copyBtn); bar.appendChild(speakBtn);
+    bubble.appendChild(bar);
   } else {
-    bubble.textContent = content;
+    bubble.textContent=content;
   }
 
-  if(role==='user') {
-    const av = document.createElement('div');
-    av.style.cssText='width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,rgba(99,102,241,.3),rgba(139,92,246,.3));border:1px solid rgba(99,102,241,.3);display:flex;align-items:center;justify-content:center;font-size:.75rem;flex-shrink:0;font-weight:700;color:#a5b4fc;';
+  if(role==='user'){
+    const av=document.createElement('div');
+    av.style.cssText='width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,rgba(99,102,241,.35),rgba(139,92,246,.35));border:1px solid rgba(99,102,241,.3);display:flex;align-items:center;justify-content:center;font-size:.75rem;flex-shrink:0;font-weight:700;color:#a5b4fc;';
     av.textContent='U';
-    wrapper.appendChild(bubble);
-    wrapper.appendChild(av);
+    wrapper.appendChild(bubble); wrapper.appendChild(av);
   } else {
     wrapper.appendChild(bubble);
   }
 
   msgsEl.appendChild(wrapper);
-  msgsEl.scrollTop = msgsEl.scrollHeight;
+  msgsEl.scrollTop=msgsEl.scrollHeight;
 }
 
-// ══════════════════════════════════════════════════
-// TYPING
-// ══════════════════════════════════════════════════
-function showTyping() {
-  const id = 'typ-'+Date.now();
-  const msgsEl = document.getElementById('chat-messages');
-  const wrapper = document.createElement('div');
-  wrapper.id = id; wrapper.className = 'msg-wrapper';
+// ══════════════════════════════════════════════════════
+//  TYPING INDICATOR
+// ══════════════════════════════════════════════════════
+function showTyping(){
+  const id='typ-'+Date.now();
+  const msgsEl=document.getElementById('chat-messages');
+  const wrapper=document.createElement('div');
+  wrapper.id=id; wrapper.className='msg-wrapper';
   wrapper.style.cssText='display:flex;gap:.6rem;align-items:flex-end;';
-
-  const av = document.createElement('img');
-  av.className='chat-avatar'; av.src=currentAgent.avatar;
-  av.onerror=()=>av.style.display='none';
+  const av=document.createElement('img');
+  av.className='chat-avatar'; av.src=currentAgent.avatar; av.onerror=()=>av.style.display='none';
   wrapper.appendChild(av);
-
-  const bubble = document.createElement('div');
-  bubble.className = 'msg-agent';
-  bubble.style.padding='.85rem 1.1rem';
+  const bubble=document.createElement('div');
+  bubble.className='msg-agent'; bubble.style.padding='.85rem 1.1rem';
   bubble.innerHTML=`<div style="display:flex;gap:6px;align-items:center;">
     <div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>
     <span style="font-size:.75rem;color:#475569;margin-left:4px;">Thinking…</span>
@@ -944,83 +734,218 @@ function showTyping() {
   msgsEl.scrollTop=msgsEl.scrollHeight;
   return id;
 }
-function removeTyping(id) { document.getElementById(id)?.remove(); }
+function removeTyping(id){ document.getElementById(id)?.remove(); }
 
-// ══════════════════════════════════════════════════
-// SEND
-// ══════════════════════════════════════════════════
-async function sendMessage() {
-  const input = document.getElementById('chat-input');
-  const msg   = input.value.trim();
-  if(!msg || isLoading) return;
-
+// ══════════════════════════════════════════════════════
+//  SEND MESSAGE
+// ══════════════════════════════════════════════════════
+async function sendMessage(){
+  const input=document.getElementById('chat-input');
+  const msg=input.value.trim();
+  if(!msg||isLoading) return;
   document.getElementById('quick-chips').innerHTML='';
   input.value=''; input.style.height='auto';
   isLoading=true; document.getElementById('send-btn').disabled=true;
-
-  appendMsg('user', msg);
-  chatHistory.push({role:'user', content:msg});
-
-  const tid = showTyping();
-  try {
-    const res  = await fetch(API_URL, {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ agentType:currentAgent.id, message:msg, history:chatHistory.slice(0,-1) })
-    });
-    const data = await res.json();
+  appendMsg('user',msg);
+  chatHistory.push({role:'user',content:msg});
+  const tid=showTyping();
+  try{
+    const res=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({agentType:currentAgent.id,message:msg,history:chatHistory.slice(0,-1)})});
+    const data=await res.json();
     removeTyping(tid);
-    if(data.error) {
-      appendMsg('agent', `⚠️ **Error:** ${data.error}\n\n${data.details||''}\n\n*Please enable billing on your Gemini API key at [aistudio.google.com](https://aistudio.google.com/app/apikey)*`);
-    } else {
-      appendMsg('agent', data.response);
-      chatHistory.push({role:'assistant', content:data.response});
-    }
-  } catch(e) {
-    removeTyping(tid);
-    appendMsg('agent',`⚠️ **Connection error.** Please check your connection.\n\`${e.message}\``);
-  }
+    if(data.error){ appendMsg('agent',`⚠️ **Error:** ${data.error}\n\n${data.details||''}`); }
+    else { appendMsg('agent',data.response); chatHistory.push({role:'assistant',content:data.response}); }
+  }catch(e){ removeTyping(tid); appendMsg('agent',`⚠️ **Connection error.** \`${e.message}\``); }
   isLoading=false; document.getElementById('send-btn').disabled=false;
   document.getElementById('chat-input').focus();
 }
 
-// ══════════════════════════════════════════════════
-// UTILS
-// ══════════════════════════════════════════════════
-function handleKeydown(e) { if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage();} }
-function autoResize(el) { el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,150)+'px'; }
+// ══════════════════════════════════════════════════════
+//  VOICE INPUT (Speech Recognition)
+// ══════════════════════════════════════════════════════
+let recognition=null, isRecording=false;
 
-function goBack() {
+function toggleVoice(){
+  if(!('webkitSpeechRecognition' in window||'SpeechRecognition' in window)){
+    showToast('Voice not supported in this browser. Try Chrome!'); return;
+  }
+  if(isRecording){ stopVoice(); return; }
+  startVoice();
+}
+
+function startVoice(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  recognition=new SR();
+  recognition.continuous=false; recognition.interimResults=true; recognition.lang='en-US';
+  isRecording=true;
+  document.getElementById('mic-btn').classList.add('recording');
+  document.getElementById('voice-status').style.display='flex';
+
+  recognition.onresult=e=>{
+    let interim='', final='';
+    for(let i=e.resultIndex;i<e.results.length;i++){
+      if(e.results[i].isFinal) final+=e.results[i][0].transcript;
+      else interim+=e.results[i][0].transcript;
+    }
+    document.getElementById('chat-input').value=final||interim;
+    autoResize(document.getElementById('chat-input'));
+    if(final){ stopVoice(); sendMessage(); }
+  };
+
+  recognition.onerror=()=>stopVoice();
+  recognition.onend=()=>stopVoice();
+  recognition.start();
+}
+
+function stopVoice(){
+  isRecording=false;
+  document.getElementById('mic-btn').classList.remove('recording');
+  document.getElementById('voice-status').style.display='none';
+  recognition?.stop();
+}
+
+// ══════════════════════════════════════════════════════
+//  TEXT TO SPEECH
+// ══════════════════════════════════════════════════════
+let currentUtterance=null;
+
+function speakText(text, btn){
+  if(!('speechSynthesis' in window)){ showToast('Text-to-speech not supported in this browser.'); return; }
+  if(currentUtterance){
+    window.speechSynthesis.cancel();
+    currentUtterance=null;
+    document.querySelectorAll('.speak-btn').forEach(b=>{ b.classList.remove('speaking'); b.innerHTML='🔊 Speak'; });
+    return;
+  }
+  // Strip markdown
+  const clean=text.replace(/#{1,6}\s/g,'').replace(/\*\*(.*?)\*\*/g,'$1').replace(/\*(.*?)\*/g,'$1').replace(/`(.*?)`/g,'$1').replace(/\[([^\]]+)\]\([^)]+\)/g,'$1').replace(/\n/g,' ');
+  const u=new SpeechSynthesisUtterance(clean);
+  u.rate=.95; u.pitch=1.05;
+  const voices=window.speechSynthesis.getVoices();
+  const preferred=voices.find(v=>v.name.includes('Google')||v.name.includes('Neural')||v.name.includes('Samantha'));
+  if(preferred) u.voice=preferred;
+  btn.classList.add('speaking'); btn.innerHTML='⏹ Stop';
+  u.onend=()=>{ btn.classList.remove('speaking'); btn.innerHTML='🔊 Speak'; currentUtterance=null; };
+  u.onerror=()=>{ btn.classList.remove('speaking'); btn.innerHTML='🔊 Speak'; currentUtterance=null; };
+  currentUtterance=u;
+  window.speechSynthesis.speak(u);
+}
+
+// ══════════════════════════════════════════════════════
+//  AI GUIDE (ARIA)
+// ══════════════════════════════════════════════════════
+let guideOpen=false, guideHistory=[], guideGreeted=false;
+
+const ARIA_KNOWLEDGE=`You are ARIA, a friendly and knowledgeable AI guide for the AI Agent Hub. You help users understand how to use the platform, which agent to pick, and what each agent can do. You are warm, concise, and helpful.
+
+The AI Agent Hub has 10 specialist agents:
+1. 🤝 Sales Agent — cold outreach, objection handling, BANT, closing
+2. 📧 Email Agent — professional emails, drip campaigns, newsletters
+3. 📊 Data Analyst — SQL, KPIs, trend analysis, A/B testing
+4. 🎯 Marketing Agent — campaigns, SEO, ads, brand strategy
+5. 💼 HR Agent — job descriptions, interviews, HR policies, onboarding
+6. 📝 Content Writer — blog posts, scripts, captions, ghostwriting
+7. 🛠️ Customer Support — response templates, de-escalation, FAQs
+8. 💰 Finance Agent — budgets, cash flow, financial modeling, fundraising
+9. ⚖️ Legal Agent — NDAs, contracts, privacy policies, compliance
+10. 🚀 Product Manager — PRDs, roadmaps, OKRs, user stories
+
+Features: voice input (click mic icon), text-to-speech (click 🔊 on any response), conversation memory, markdown formatting. Powered by Groq's Llama 3.3 70B for near-instant responses.
+
+Be concise. Max 3 sentences per reply unless explaining a complex topic. Suggest specific agents when relevant.`;
+
+function toggleGuide(){
+  guideOpen=!guideOpen;
+  const panel=document.getElementById('guide-panel');
+  if(guideOpen){
+    panel.classList.add('open');
+    if(!guideGreeted){
+      guideGreeted=true;
+      setTimeout(()=>{
+        addGuideMsg('bot',"👋 Hey! I'm **ARIA**, your AI Hub guide! I can help you pick the right agent, explain features, or answer any questions.\n\nWhat would you like to know?");
+      },300);
+    }
+    setTimeout(()=>document.getElementById('guide-input').focus(),400);
+  } else {
+    panel.classList.remove('open');
+  }
+}
+
+function addGuideMsg(role, text){
+  const el=document.getElementById('guide-msgs');
+  const div=document.createElement('div');
+  div.className=role==='bot'?'guide-msg-bot':'guide-msg-user';
+  // Simple markdown for bold
+  div.innerHTML=text.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br/>');
+  el.appendChild(div);
+  el.scrollTop=el.scrollHeight;
+}
+
+async function sendGuideMsg(){
+  const input=document.getElementById('guide-input');
+  const msg=input.value.trim();
+  if(!msg) return;
+  input.value='';
+  addGuideMsg('user',msg);
+  guideHistory.push({role:'user',content:msg});
+
+  // Typing
+  const typDiv=document.createElement('div');
+  typDiv.className='guide-msg-bot'; typDiv.id='guide-typing';
+  typDiv.innerHTML='<div style="display:flex;gap:5px;align-items:center;"><div class="typing-dot" style="background:#818cf8"></div><div class="typing-dot" style="background:#818cf8"></div><div class="typing-dot" style="background:#818cf8"></div></div>';
+  document.getElementById('guide-msgs').appendChild(typDiv);
+  document.getElementById('guide-msgs').scrollTop=9999;
+
+  try{
+    const res=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({agentType:'guide',message:msg,history:guideHistory.slice(0,-1),systemOverride:ARIA_KNOWLEDGE})});
+    const data=await res.json();
+    document.getElementById('guide-typing')?.remove();
+    const reply=data.response||data.error||"I'm not sure about that, but feel free to explore the agents!";
+    addGuideMsg('bot',reply);
+    guideHistory.push({role:'assistant',content:reply});
+  }catch(e){
+    document.getElementById('guide-typing')?.remove();
+    addGuideMsg('bot',"Hmm, I had trouble connecting. Try asking again!");
+  }
+}
+
+// ══════════════════════════════════════════════════════
+//  UTILS
+// ══════════════════════════════════════════════════════
+function handleKeydown(e){ if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage();} }
+function autoResize(el){ el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,150)+'px'; }
+
+function goBack(){
   document.getElementById('chat-view').style.display='none';
   document.getElementById('landing-view').style.display='block';
   currentAgent=null; chatHistory=[];
+  if(currentUtterance){ window.speechSynthesis.cancel(); currentUtterance=null; }
+  stopVoice();
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
-function clearChat() {
-  if(confirm('Clear this conversation?')) { chatHistory=[]; document.getElementById('chat-messages').innerHTML=''; selectAgent(currentAgent.id); }
+function clearChat(){
+  if(confirm('Clear this conversation?')){ chatHistory=[]; document.getElementById('chat-messages').innerHTML=''; selectAgent(currentAgent.id); }
 }
 
-function showToast(msg) {
+function showToast(msg){
   const t=document.getElementById('toast'); t.textContent='✓ '+msg; t.classList.add('show');
   setTimeout(()=>t.classList.remove('show'),2200);
 }
 
-// Scroll to top button
-window.addEventListener('scroll',()=>{
-  const btn=document.getElementById('scrollTop');
-  btn.style.display=window.scrollY>300?'flex':'none';
-});
+window.addEventListener('scroll',()=>{ document.getElementById('scrollTop').style.display=window.scrollY>300?'flex':'none'; });
 
-// Intersection observer for card entrance
-const io = new IntersectionObserver(entries=>{
-  entries.forEach(e=>{ if(e.isIntersecting) e.target.style.opacity='1'; });
-},{threshold:.1});
+// preload voices
+window.speechSynthesis?.getVoices();
+window.speechSynthesis?.addEventListener?.('voiceschanged',()=>window.speechSynthesis.getVoices());
 
-// ══════════════════════════════════════════════════
-// INIT
-// ══════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════════════
 renderCards();
-document.querySelectorAll('.agent-card').forEach(c=>io.observe(c));
+
+// Auto-open guide after 2.5s on first visit
+setTimeout(()=>{ if(!guideOpen) toggleGuide(); }, 2500);
 </script>
 </body>
 </html>
